@@ -87,7 +87,8 @@ namespace BoletoNet
                     boleto.NossoNumero += boleto.DigitoNossoNumero;
                     break;
                 case 6:
-                    boleto.NossoNumero = DateTime.Now.ToString("yy") + boleto.NossoNumero;
+                    var iNossoNumero = int.Parse(boleto.NossoNumero);
+                    boleto.NossoNumero = DateTime.Now.ToString("yy") + "2" + iNossoNumero.ToString().PadLeft(5, '0');
                     boleto.DigitoNossoNumero = DigNossoNumeroSicredi(boleto);
                     boleto.NossoNumero += boleto.DigitoNossoNumero;
                     break;
@@ -322,7 +323,7 @@ namespace BoletoNet
                 {
 
                     case TipoArquivo.CNAB240:
-                        _header = GerarHeaderRemessaCNAB240(cedente);
+                        _header = GerarHeaderRemessaCNAB240(cedente,numeroArquivoRemessa);
                         break;
                     case TipoArquivo.CNAB400:
                         _header = GerarHeaderRemessaCNAB400(0, cedente, numeroArquivoRemessa);
@@ -344,7 +345,7 @@ namespace BoletoNet
         {
             try
             {
-                return GerarHeaderRemessaCNAB240(cedente);
+                return GerarHeaderRemessaCNAB240(cedente, numeroArquivoRemessa);
             }
             catch (Exception e)
             {
@@ -380,32 +381,35 @@ namespace BoletoNet
             }
         }
 
-        public string GerarHeaderRemessaCNAB240(Cedente cedente)
+        public string GerarHeaderRemessaCNAB240(Cedente cedente, int numeroArquivoRemessa)
         {
             try
             {
-                string header = "748";
-                header += "0000";
-                header += "0";
-                header += Utils.FormatCode("", " ", 9);
-                header += (cedente.CPFCNPJ.Length == 11 ? "1" : "2");
-                header += Utils.FormatCode(cedente.CPFCNPJ, "0", 14, true);
-                header += Utils.FormatCode(cedente.Convenio.ToString(), " ", 20);
-                header += Utils.FormatCode(cedente.ContaBancaria.Agencia, "0", 5, true);
-                header += " ";
-                header += Utils.FormatCode(cedente.ContaBancaria.Conta, "0", 12, true);
-                header += cedente.ContaBancaria.DigitoConta;
-                header += " ";
-                header += Utils.FormatCode(cedente.Nome, " ", 30);
-                header += Utils.FormatCode("SICREDI", " ", 30);
-                header += Utils.FormatCode("", " ", 10);
-                header += Utils.FormatCode(cedente.Nome, " ", 30);
-                header += "1";
-                header += DateTime.Now.ToString("ddMMyyyyHHmmss");
-                header += Utils.FormatCode("", "0", 6);
-                header += "081";
-                header += "01600";
-                header += Utils.FormatCode("", " ", 69);
+                string header = "748";//Posição 001 a 003
+                header += "0000";//Posição 004 a 007
+                header += "0";//Posição 008
+                header += Utils.FormatCode("", " ", 9);//Posição 009 a 017
+                header += (cedente.CPFCNPJ.Length == 11 ? "1" : "2");//Posição 018
+                header += Utils.FormatCode(cedente.CPFCNPJ, "0", 14, true);//Posição 019 a 032
+                header += Utils.FormatCode("", " ", 20);
+                //header += Utils.FormatCode(cedente.Convenio.ToString(), " ", 20);//Posição 033 a 52
+                header += Utils.FormatCode(cedente.ContaBancaria.Agencia, "0", 5, true);//Posição 053 a 057
+                header += " ";//Posição 058
+                header += Utils.FormatCode(cedente.ContaBancaria.Conta, "0", 12, true);//Posição 059 a 070
+                header += cedente.ContaBancaria.DigitoConta;//Posição 071
+                header += " ";//Posição 072
+                header += Utils.FormatCode(cedente.Nome, " ", 30);//Posição 073 a 102
+                header += Utils.FormatCode("SICREDI", " ", 30);//Posição 103 a 132
+                header += Utils.FormatCode("", " ", 10);//Posição 133 a 142
+                header += DateTime.Now.ToString("ddMMyyyy");//Posição 144 a 151
+                header += DateTime.Now.ToString("HHmmss");//Posição 152 a 157
+                header += Utils.FormatCode(numeroArquivoRemessa.ToString(), "0",6, true);//Posição 158 a 163
+                //header += Utils.FormatCode("", "0", 6);//Posição 158 a 163
+                header += "081";//Posição 164 a 166
+                header += "01600";//Posição 167 a 171
+                header += Utils.FormatCode("", " ", 20);//Posição 172 a 191
+                header += Utils.FormatCode("", " ", 20);//Posição 192 a 211
+                header += Utils.FormatCode("", " ", 29);//Posição 212 a 240
                 header = Utils.SubstituiCaracteresEspeciais(header);
                 return header;
 
@@ -602,6 +606,9 @@ namespace BoletoNet
 
         public string DigNossoNumeroSicredi(Boleto boleto, bool arquivoRemessa = false)
         {
+            if (!string.IsNullOrEmpty(boleto.DigitoNossoNumero))
+                return boleto.DigitoNossoNumero;
+
             //Adicionado por diego.dariolli pois ao gerar remessa o dígito saía errado pois faltava agência e posto no código do cedente
             string codigoCedente = ""; //código do beneficiário aaaappccccc
             if (arquivoRemessa)
@@ -609,7 +616,7 @@ namespace BoletoNet
                 if (string.IsNullOrEmpty(boleto.Cedente.ContaBancaria.OperacaConta))
                     throw new Exception("O código do posto beneficiário não foi informado.");
 
-                codigoCedente = string.Concat(boleto.Cedente.ContaBancaria.Agencia, boleto.Cedente.ContaBancaria.OperacaConta, boleto.Cedente.Codigo); 
+                codigoCedente = string.Concat(boleto.Cedente.ContaBancaria.Agencia, boleto.Cedente.ContaBancaria.OperacaConta, boleto.Cedente.Codigo);
             }
             else
                 codigoCedente = boleto.Cedente.Codigo;
@@ -851,7 +858,10 @@ namespace BoletoNet
                 if (string.IsNullOrEmpty(boleto.DigitoNossoNumero) || NossoNumero.Length < 9)
                 {
                     boleto.DigitoNossoNumero = DigNossoNumeroSicredi(boleto, true);
-                    vAuxNossoNumeroComDV = NossoNumero + boleto.DigitoNossoNumero;
+                    vAuxNossoNumeroComDV = string.Format("{0}{1}{2}",
+                                                          DateTime.Now.ToString("yy"),
+                                                          2,
+                                                          int.Parse(string.Concat(NossoNumero, boleto.DigitoNossoNumero)).ToString().PadLeft(6, '0'));
                 }
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0048, 009, 0, vAuxNossoNumeroComDV, '0'));                      //048-056
                 #endregion
