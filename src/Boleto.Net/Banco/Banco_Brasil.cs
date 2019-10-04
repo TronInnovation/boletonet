@@ -550,6 +550,8 @@ namespace BoletoNet
             //Atribui o nome do banco ao local de pagamento
             if (string.IsNullOrEmpty(boleto.LocalPagamento))
                 boleto.LocalPagamento = "Até o vencimento, preferencialmente no " + Nome;
+            else if (boleto.LocalPagamento == "Até o vencimento, preferencialmente no ")
+                boleto.LocalPagamento += Nome;
 
             //Verifica se data do processamento é valida
             //if (boleto.DataProcessamento.ToString("dd/MM/yyyy") == "01/01/0001")
@@ -1673,10 +1675,33 @@ namespace BoletoNet
                 _segmentoR += Utils.FitStringLength(numeroRegistro.ToString(), 5, 5, '0', 0, true, true, true);
                 _segmentoR += "R ";
                 _segmentoR += ObterCodigoDaOcorrencia(boleto);
-                // Desconto 2
-                _segmentoR += "000000000000000000000000"; //24 zeros
-                // Desconto 3
-                _segmentoR += "000000000000000000000000"; //24 zeros
+
+                //Suelton - 14/12/2018 - Implementação do 2 desconto por antecipação
+                if (boleto.DataDescontoAntecipacao2.HasValue && boleto.ValorDescontoAntecipacao2.HasValue)
+                {
+                    _segmentoR += "1" + //'1' = Valor Fixo Até a Data Informada
+                        Utils.FitStringLength(boleto.DataDescontoAntecipacao2.Value.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, false) +
+                        Utils.FitStringLength(boleto.ValorDescontoAntecipacao2.ApenasNumeros(), 15, 15, '0', 0, true, true, true);
+                }
+                else
+                {
+                    // Desconto 2
+                    _segmentoR += "000000000000000000000000"; //24 zeros
+                }
+
+                //Suelton - 14/12/2018 - Implementação do 3 desconto por antecipação
+                if (boleto.DataDescontoAntecipacao3.HasValue && boleto.ValorDescontoAntecipacao3.HasValue)
+                {
+                    _segmentoR += "1" + //'1' = Valor Fixo Até a Data Informada
+                        Utils.FitStringLength(boleto.DataDescontoAntecipacao3.Value.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, false) +
+                        Utils.FitStringLength(boleto.ValorDescontoAntecipacao3.ApenasNumeros(), 15, 15, '0', 0, true, true, true);
+                }
+                else
+                {
+                    // Desconto 3
+                    _segmentoR += "000000000000000000000000"; //24 zeros
+                }
+                    
 
                 if (boleto.PercMulta > 0)
                 {
