@@ -3,6 +3,7 @@ using BoletoNet.Excecoes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 
 [assembly: WebResource("BoletoNet.Imagens.748.jpg", "image/jpg")]
@@ -18,6 +19,24 @@ namespace BoletoNet
             { 3, "Sem Registro" }
         };
 
+        #region Variáveis
+
+        string _byteGeracao = "2";
+
+        #endregion
+
+
+        #region Properties
+
+        private int QtdRegistrosGeral { get; set; }
+        private int QtdRegistrosLote { get; set; }
+        private int QtdLotesGeral { get; set; }
+        private int QtdTitulosLote { get; set; }
+        private decimal ValorTotalTitulosLote { get; set; }
+
+        #endregion
+
+
         private HeaderRetorno header;
 
         /// <author>
@@ -25,9 +44,21 @@ namespace BoletoNet
         /// </author>
         internal Banco_Sicredi()
         {
-            this.Codigo = 748;
-            this.Digito = "X";
-            this.Nome = "Banco Sicredi";
+            try
+            {
+                this.Codigo = 748;
+                this.Digito = "0";
+                this.Nome = "Sicredi";
+                this.QtdRegistrosGeral = 0;
+                this.QtdRegistrosLote = 0;
+                this.QtdLotesGeral = 0;
+                this.QtdTitulosLote = 0;
+                this.ValorTotalTitulosLote = 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao instanciar objeto.", ex);
+            }
         }
 
         public override void ValidaBoleto(Boleto boleto)
@@ -75,6 +106,7 @@ namespace BoletoNet
 
             //Verifica se o nosso número é válido
             var Length_NN = boleto.NossoNumero.Length;
+            boleto.NossoNumeroSemFormatacao = boleto.NossoNumero;
             switch (Length_NN)
             {
                 case 9:
@@ -353,6 +385,290 @@ namespace BoletoNet
             }
         }
 
+        #region Formatações Remessa
+
+        public string DigNossoNumeroSicredi(string seq)
+        {
+            //string codigoCedente = boleto.Cedente.Codigo;           //código do beneficiário aaaappccccc
+            //string nossoNumero = boleto.NossoNumero;                //ano atual (yy), indicador de geração do nosso número (b) e o número seqüencial do beneficiário (nnnnn);
+
+            //string seq = boleto.NossoNumero; //string.Concat(codigoCedente, nossoNumero); // = aaaappcccccyybnnnnn
+            /* Variáveis
+             * -------------
+             * d - Dígito
+             * s - Soma
+             * p - Peso
+             * b - Base
+             * r - Resto
+             */
+
+            int d, s = 0, p = 2, b = 9;
+            //Atribui os pesos de {2..9}
+            for (int i = seq.Length - 1; i >= 0; i--)
+            {
+                s = s + (Convert.ToInt32(seq.Substring(i, 1)) * p);
+                if (p < b)
+                    p = p + 1;
+                else
+                    p = 2;
+            }
+            d = 11 - (s % 11);//Calcula o Módulo 11;
+            if (d > 9)
+                d = 0;
+            return d.ToString();
+        }
+
+        public String PreparaNossoNumero(Boleto boleto)
+        {
+            try
+            {
+                var anoReferencia = Utils.RightStr(boleto.DataProcessamento.Year.ToString(), 2);
+                // Calcula o Digito Verificador do Nosso Número
+                string seq = string.Format("{0}{1}{2}{3}{4}{5}",
+                                           Utils.RightStr(Utils.FormatCode(boleto.Cedente.ContaBancaria.Agencia, 4), 4),
+                                           Utils.RightStr(Utils.FormatCode(boleto.Cedente.CodigoTransmissao, 2), 2),
+                                           Utils.RightStr(Utils.FormatCode(boleto.Cedente.Codigo, 5), 5),
+                                           anoReferencia,
+                                           _byteGeracao,
+                                           Utils.RightStr(Utils.FormatCode(boleto.NossoNumeroSemFormatacao, 5), 5));
+
+                string dv_NossoNumero = DigNossoNumeroSicredi(seq);
+
+                return string.Concat(anoReferencia, _byteGeracao, Utils.FormatCode(boleto.NossoNumero, 5), dv_NossoNumero);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao formatar nosso número", ex);
+            }
+        }
+
+        public String DigitoVerificador(Boleto boleto)
+        {
+            var dvString = Utils.FitStringLength(boleto.Cedente.ContaBancaria.Agencia, 4, 4, '0', 0, true, true, true);
+            dvString += Utils.FitStringLength(String.Concat(Utils.RightStr(boleto.Cedente.Codigo, 6), boleto.Cedente.DigitoCedente), 10, 10, '0', 0, true, true, true);
+            dvString += Utils.FitStringLength(boleto.NossoNumeroSemFormatacao, 7, 7, '0', 0, true, true, true);
+            var soma = 0;
+
+            return Mod11(dvString, 7913).ToString();
+        }
+
+        #endregion
+
+        public override string GerarDetalheSegmentoPRemessa(Boleto boleto, int numeroRegistro, string numeroConvenio)
+        {
+            QtdRegistrosGeral++;
+            QtdRegistrosLote++;
+            QtdTitulosLote++;
+            ValorTotalTitulosLote = ValorTotalTitulosLote + boleto.ValorBoleto;
+
+            var detalhe = new StringBuilder();
+
+            try
+            {
+                var valorJuros = 0.00m;
+
+                //Montagem do Detalhe
+                detalhe.Append("748"); //Posição 001 a 003
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(QtdLotesGeral), 4, 4, '0', 0, true, true, true));//Posição 004 a 007
+                detalhe.Append("3");//Posição 008
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(numeroRegistro), 5, 5, '0', 0, true, true, true));//Posição 009 a 013
+                detalhe.Append("P");//Posição 014
+                detalhe.Append(" ");//Posição 015
+                detalhe.Append("01"); //Posição 016 a 017
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Cedente.ContaBancaria.Agencia), 5, 5, '0', 0, true, true, true)); //Posição 018 a 022
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Cedente.ContaBancaria.DigitoAgencia), 1, 1, '0', 0, true, true, true)); //Posição 023
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Cedente.ContaBancaria.Conta), 12, 12, '0', 0, true, true, true)); //Posição 024 a 035
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Cedente.ContaBancaria.DigitoConta), 1, 1, '0', 0, true, true, true)); //Posição 036
+                detalhe.Append(" ");//Posição 037
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(PreparaNossoNumero(boleto)), 20, 20, '0', 0, true, true, false));//Posição 038 a 057
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Carteira), 1, 1, '0', 0, true, true, true));//Posição 058
+                detalhe.Append("1");//Posição 059
+                detalhe.Append("1");//Posição 060
+                detalhe.Append(Utils.FitStringLength("2", 1, 1, '0', 0, true, true, true));//Posição 061  
+                detalhe.Append(Utils.FitStringLength("2", 1, 1, '0', 0, true, true, true));//Posição 062  
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.NumeroDocumento), 15, 15, ' ', 0, true, true, false));//Posição 063 a 077
+                detalhe.Append(Utils.FitStringLength(boleto.DataVencimento.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, true)); //Posição 078 a 085
+                detalhe.Append(Utils.FitStringLength(boleto.ValorBoleto.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//Posição 086 a 100
+                detalhe.Append("00000");//Posição 101 a 105
+                detalhe.Append(" ");//Posição 106
+                detalhe.Append("03");//Posição 107 a 108
+                detalhe.Append(Utils.FitStringLength(boleto.Aceite, 1, 1, 'A', 0, true, true, false));//Posição 109
+                detalhe.Append(Utils.FitStringLength(DateTime.Today.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, true));//Posição 110 a 117
+                detalhe.Append(Utils.FitStringLength((boleto.CodJurosMora != null) && (boleto.CodJurosMora != "") && (boleto.CodJurosMora != "0") ? boleto.CodJurosMora.ToString() : "2", 1, 1, '1', 0, true, true, true));//Posição 118
+                detalhe.Append(Utils.FitStringLength(boleto.DataVencimento.AddDays(1).ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, true));//Posição 119 a 126
+
+                if (boleto.CodJurosMora == "1" || boleto.CodJurosMora == null || boleto.CodJurosMora != "0")//Atribuindo a porcentagem de juros diários
+                    valorJuros = (decimal)(boleto.JurosMora / 30);
+                else                                                      //Calculando valor do juros com base na porcentagem informada  
+                    valorJuros = (decimal)(((boleto.ValorBoleto * boleto.PercJurosMora) / 100) / 30);
+
+                detalhe.Append(Utils.FitStringLength(valorJuros.ToString("0.00").Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//Posição 127 a 141
+                detalhe.Append(Utils.FitStringLength(boleto.DataDesconto >= DateTime.Now ? "1" : "0", 1, 1, '0', 0, true, true, true));//Posição 142  
+                detalhe.Append(Utils.FitStringLength(boleto.DataDesconto != null && boleto.DataDesconto >= Convert.ToDateTime("01/01/1990") ? boleto.DataDesconto.ToString("ddMMyyyy") : "0", 8, 8, '0', 0, true, true, true));//Posição 143 a 150   
+                detalhe.Append(Utils.FitStringLength(boleto.ValorDesconto.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//Posição 151 a 165 
+                detalhe.Append(Utils.FitStringLength(boleto.IOF.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//Posição 166 a 180 
+                detalhe.Append(Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true));//Posição 181 a 195 
+                detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 25, 25, '0', 0, true, true, true));//Posição 196 a 220
+                detalhe.Append("3");//Posição 221 
+                detalhe.Append("30");//Posição 222 a 223   
+                detalhe.Append("1");//Posição 224
+                detalhe.Append("060");//Posição 225 a 227
+                detalhe.Append("09");//Posição 228 a 229
+                detalhe.Append("0000000000");//Posição 230 a 239
+                detalhe.Append(" ");//Posição 240
+
+                //Retorno
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao gerar DETALHE SEGMENTO P do arquivo de remessa do CNAB240.", ex);
+            }
+
+        }
+
+        public override string GerarDetalheSegmentoQRemessa(Boleto boleto, int numeroRegistro, TipoArquivo tipoArquivo)
+        {
+            QtdRegistrosGeral++;
+            QtdRegistrosLote++;
+
+            var detalhe = new StringBuilder();
+
+            try
+            {
+                detalhe.Append("748");//Posição 001 a 003
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(QtdLotesGeral), 4, 4, '0', 0, true, true, true));//Posição 004 a 007
+                detalhe.Append("3");//Posição 008
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(numeroRegistro), 5, 5, '0', 0, true, true, true));//Posição 009 a 013
+                detalhe.Append("Q");//Posição 014 
+                detalhe.Append(" ");//Posição 015
+                detalhe.Append("01");//Posição 016 a 017
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.CPFCNPJ.Length < 14? "1" : "2", 1, 1, '0', 0, true, true, true));//Posição  018
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Sacado.CPFCNPJ), 15, 15, '0', 0, true, true, true));//Posição 019 a 033
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Nome, 40, 40, ' ', 0, true, true, false));//Posição 034 073
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.End != null ? boleto.Sacado.Endereco.End : "", 40, 40, ' ', 0, true, true, false));//Posição 074 a 113
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.Bairro != null ? boleto.Sacado.Endereco.Bairro : "", 15, 15, ' ', 0, true, true, false));//Posição 114 a 128
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.CEP != null ? boleto.Sacado.Endereco.CEP.Replace("-", "").Replace(".", "").Replace("/", "") : "", 8, 8, '0', 0, true, true, true)); //Posição 129 a 136
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.Cidade != null ? boleto.Sacado.Endereco.Cidade : "", 15, 15, ' ', 0, true, true, false));//Posição 137 a 151
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.UF != null ? boleto.Sacado.Endereco.UF : "", 2, 2, ' ', 0, true, true, false));//Posição 152 a 153
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.CPFCNPJ.Length < 14 ? "1" : "2", 1, 1, '0', 0, true, true, false));//Posição 154
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Sacado.CPFCNPJ), 15, 15, '0', 0, true, true, true));//Posição 155 a 169
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Nome, 40, 40, ' ', 0, true, true, false));//Posição 170 a 209
+                detalhe.Append("000");//Posição 210 a 212
+                detalhe.Append(Utils.FitStringLength(" ", 20, 20, ' ', 0, true, true, true));//Posição 213 a 232
+                detalhe.Append(new string(' ', 8));//Posição 233 a 240
+
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao gerar DETALHE SEGMENTO P do arquivo de remessa do CNAB240.", ex);
+            }
+
+        }
+
+        // <summary>
+        // 
+        // </summary>
+        // <param name = "boleto" ></ param >
+        // < param name="numeroRegistro"></param>
+        // <param name = "tipoArquivo" ></ param >
+        // < returns ></ returns >
+        public override string GerarDetalheSegmentoRRemessa(Boleto boleto, int numeroRegistro, TipoArquivo tipoArquivo)
+        {
+            QtdRegistrosGeral++;
+            QtdRegistrosLote++;
+
+            var detalhe = new StringBuilder();
+
+            try
+            {
+                detalhe.Append("748");//Posição 001 a 003
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(QtdLotesGeral), 4, 4, '0', 0, true, true, true));//Posição 004 a 007
+                detalhe.Append("3");//Posição 008
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(numeroRegistro), 5, 5, '0', 0, true, true, true));//Posição 009 a 013
+                detalhe.Append("R");//Posição 014
+                detalhe.Append(" ");//Posição 015
+                detalhe.Append("01");//Posição 016 a 017
+                detalhe.Append(Utils.FitStringLength("0", 1, 1, '0', 0, true, true, true));//Posição 018
+                detalhe.Append(Utils.FitStringLength("0", 8, 8, '0', 0, true, true, true));//Posição 019 a 026
+                detalhe.Append(Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true));//Posição 027 a 041
+                detalhe.Append("0");//Posição 042
+                detalhe.Append(Utils.FitStringLength("0", 8, 8, '0', 0, true, true, true));//Posição 043 a 050
+                detalhe.Append(Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true));//Posição 051 a 065
+                detalhe.Append(Utils.FitStringLength("2", 1, 1, '1', 0, true, true, true));//Posição 066
+                detalhe.Append(Utils.FitStringLength(boleto.DataVencimento.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, true)); //Posição 067 a 074
+
+                decimal percentualMulta = 0.0m;
+
+                if (boleto.CodJurosMora == "2")
+                {
+                    percentualMulta = (decimal)boleto.PercMulta;
+                }
+                else
+                {
+                    percentualMulta = (decimal)boleto.ValorMulta * 100 / boleto.ValorBoleto;
+                }
+
+                detalhe.Append(Utils.FitStringLength(string.Format("{0:F2}", percentualMulta).Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//Posição 075 a 089
+                detalhe.Append(new string(' ', 10));//Posição 090 a 099
+                detalhe.Append(Utils.FitStringLength(" ", 40, 40, ' ', 0, true, true, false));//Posição 100 a 139
+                detalhe.Append(Utils.FitStringLength(" ", 40, 40, ' ', 0, true, true, false));//Posição 140 a 179
+                detalhe.Append(new string(' ', 20));//Posição 180 a 199
+                detalhe.Append(Utils.FitStringLength("0", 8, 8, '0', 0, true, true, true));//Posição 200 a 207
+                detalhe.Append(Utils.FitStringLength("0", 3, 3, '0', 0, true, true, true));//Posição 208 a 210
+                detalhe.Append(Utils.FitStringLength("0", 5, 5, '0', 0, true, true, true));//Posição 211 a 215
+                detalhe.Append(" ");//Posição 216
+                detalhe.Append(Utils.FitStringLength("0", 12, 12, '0', 0, true, true, true));//Posição 217 a 228
+                detalhe.Append(" ");//Posição 229 
+                detalhe.Append(" ");//Posição 230
+                detalhe.Append("0");//Posição 231
+                detalhe.Append(new string(' ', 9));//Posição 232 a 240
+
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao gerar DETALHE SEGMENTO R do arquivo de remessa do CNAB240.", ex);
+            }
+
+        }
+
+        public override string GerarDetalheSegmentoSRemessa(Boleto boleto, int numeroRegistro, TipoArquivo tipoArquivo)
+        {
+            QtdRegistrosGeral++;
+            QtdRegistrosLote++;
+
+            var detalhe = new StringBuilder();
+
+            try
+            {
+                detalhe.Append("748");//Posição 001 a 003
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(QtdLotesGeral), 4, 4, '0', 0, true, true, true));//Posição 004 a 007
+                detalhe.Append("3");//Posição 008
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(numeroRegistro), 5, 5, '0', 0, true, true, true));//Posição 009 a 013
+                detalhe.Append("S");//Posição 014
+                detalhe.Append(" ");//Posição 015
+                detalhe.Append("01");//Posição 016 a 017
+                detalhe.Append("3");//Posição 018
+                detalhe.Append(Utils.FitStringLength(boleto.Cedente.Instrucoes.Count > 0 ? boleto.Cedente.Instrucoes[0].Descricao : "", 40, 40, ' ', 0, true, true, false));//Posição 019 a 058
+                detalhe.Append(Utils.FitStringLength(boleto.Cedente.Instrucoes.Count > 1 ? boleto.Cedente.Instrucoes[1].Descricao : "", 40, 40, ' ', 0, true, true, false));//Posição 059 a 098
+                detalhe.Append(Utils.FitStringLength(boleto.Cedente.Instrucoes.Count > 2 ? boleto.Cedente.Instrucoes[2].Descricao : "", 40, 40, ' ', 0, true, true, false));//Posição 099 a 138
+                detalhe.Append(Utils.FitStringLength(boleto.Cedente.Instrucoes.Count > 3 ? boleto.Cedente.Instrucoes[3].Descricao : "", 40, 40, ' ', 0, true, true, false));//Posição 139 a 178
+                detalhe.Append(Utils.FitStringLength(boleto.Cedente.Instrucoes.Count > 4 ? boleto.Cedente.Instrucoes[4].Descricao : "", 40, 40, ' ', 0, true, true, false));//Posição 179 a 218
+                detalhe.Append(new string(' ', 22));//Posição 139 a 240
+
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao gerar DETALHE SEGMENTO S do arquivo de remessa do CNAB240.", ex);
+            }
+
+        }
+
+
         public override string GerarHeaderLoteRemessa(string numeroConvenio, Cedente cedente, int numeroArquivoRemessa, TipoArquivo tipoArquivo)
         {
             try
@@ -444,6 +760,65 @@ namespace BoletoNet
             catch (Exception ex)
             {
                 throw new Exception("", ex);
+            }
+        }
+
+        public override string GerarTrailerLoteRemessa(int numeroRegistro)
+        {
+            QtdRegistrosGeral++;
+            QtdRegistrosLote++;
+
+            var trailler = new StringBuilder();
+
+            try
+            {
+                trailler.Append("748");//Posição 001 a 003
+                trailler.Append(Utils.FitStringLength(Convert.ToString(QtdLotesGeral), 4, 4, '0', 0, true, true, true));//Posição 004 a 007
+                trailler.Append("5");//Posição 008
+                trailler.Append(new string(' ', 9));//Posição 009 a 017
+                trailler.Append(Utils.FitStringLength(Convert.ToString(QtdRegistrosLote), 6, 6, '0', 0, true, true, true));//Posição 018 a 023
+                trailler.Append(Utils.FitStringLength("0", 6, 6, '0', 0, true, true, true));//Posição 024 a 029
+                trailler.Append(Utils.FitStringLength("0", 17, 17, '0', 0, true, true, true));//Posição 030 a 046
+                trailler.Append(Utils.FitStringLength("0", 6, 6, '0', 0, true, true, true));//Posição 047 a 052
+                trailler.Append(Utils.FitStringLength("0", 17, 17, '0', 0, true, true, true));//Posição 053 a 069
+                trailler.Append(Utils.FitStringLength("0", 6, 6, '0', 0, true, true, true));//Posição 070 a 075
+                trailler.Append(Utils.FitStringLength("0", 17, 17, '0', 0, true, true, true));//Posição 076 a 092
+                trailler.Append(Utils.FitStringLength("0", 6, 6, '0', 0, true, true, true));//Posição 093 a 098
+                trailler.Append(Utils.FitStringLength("0", 17, 17, '0', 0, true, true, true));//Posição 099 a 115
+                trailler.Append(new string(' ', 8));//Posição 116 a 123
+                trailler.Append(new string(' ', 117));//Posição 124 a 240
+
+                return Utils.SubstituiCaracteresEspeciais(trailler.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao gerar TRAILLER DO LOTE do arquivo de remessa do CNAB240.", ex);
+            }
+
+        }
+
+        public override string GerarTrailerArquivoRemessa(int numeroRegistro)
+        {
+            QtdRegistrosGeral++;
+
+            var trailler = new StringBuilder();
+
+            try
+            {
+                trailler.Append("748");//Posição 001 a 003
+                trailler.Append("9999");//Posição 004 a 007
+                trailler.Append("9");//Posição 008
+                trailler.Append(new string(' ', 9));//Posição 009 a 017
+                trailler.Append(Utils.FitStringLength(Convert.ToString(QtdLotesGeral), 6, 6, '0', 0, true, true, true));//Posição 018 a 023
+                trailler.Append(Utils.FitStringLength(Convert.ToString(QtdRegistrosGeral), 6, 6, '0', 0, true, true, true));//Posição 024 a 029
+                trailler.Append("000000");//Posição 030 a 035
+                trailler.Append(new string(' ', 205));//Posição 036 a 240
+
+                return Utils.SubstituiCaracteresEspeciais(trailler.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao gerar TRAILLER DO LOTE do arquivo de remessa do CNAB240.", ex);
             }
         }
 

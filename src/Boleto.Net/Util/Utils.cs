@@ -542,5 +542,64 @@ namespace BoletoNet
 
             return true;
         }
+
+        public static string OnlyNumbers(string subjectString)
+        {
+            string resultString = null;
+
+
+            try
+            {
+                Regex regexObj = new Regex(@"[^\d]");
+                resultString = regexObj.Replace(subjectString, "");
+            }
+            catch (ArgumentException ex)
+            {
+                resultString = "";
+                // Syntax error in the regular expression
+            }
+
+            return resultString;
+        }
+
+        public static string RightStr(string value, int length)
+        {
+            if (value != null)
+            {
+                if (value.Length > length)
+                {
+                    return value.Substring(value.Length - length);
+                }
+                else
+                {
+                    return value;
+                }
+            }
+            else
+            {
+                return "";
+            }
+
+        }
+
+        public static string LeftStr(string value, int length)
+        {
+            if (value != null)
+            {
+                if (value.Length > length)
+                {
+                    return value.Substring(0, length);
+                }
+                else
+                {
+                    return value;
+                }
+            }
+            else
+            {
+                return "";
+            }
+        }
+
     }
 }

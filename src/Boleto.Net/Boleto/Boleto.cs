@@ -18,7 +18,8 @@ namespace BoletoNet
 		private string _carteira = string.Empty;
 		private string _variacaoCarteira = string.Empty;
 		private string _nossoNumero = string.Empty;
-		private string _digitoNossoNumero = string.Empty;
+        private string _nossoNumeroSemFormatacao = string.Empty;
+        private string _digitoNossoNumero = string.Empty;
         private bool _apenasRegistrar = false;
 		private DateTime _dataVencimento;
 		private DateTime _dataDocumento;
@@ -325,6 +326,15 @@ namespace BoletoNet
 			get { return this._nossoNumero; }
 			set { this._nossoNumero = value; }
 		}
+
+        /// <summary> 
+        /// Recupara o nosso número 
+        /// </summary>        
+        public string NossoNumeroSemFormatacao
+        {
+            get { return this._nossoNumeroSemFormatacao; }
+            set { this._nossoNumeroSemFormatacao = value; }
+        }
 
         /// <summary> 
         /// Condição para Emissão da Papeleta de Cobrança
