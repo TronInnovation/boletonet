@@ -20,9 +20,19 @@ namespace BoletoNet
         private string _digCedente;
         private int _digitoCedente = -1;
         private string _carteira;
+        private string _variacaoCarteira;
         private Endereco _endereco;
         private IList<IInstrucao> _instrucoes = new List<IInstrucao>();
         private bool _mostrarCNPJnoBoleto = false;
+        private string _Mensagem1;
+        private string _Mensagem2;
+        private string _Mensagem3;
+        private string _Mensagem4;
+        private string _Mensagem5;
+        private string _Mensagem6;
+        private string _Mensagem7;
+        private string _Mensagem8;
+        private string _Mensagem9;
 
         #endregion Variaveis
 
@@ -259,6 +269,17 @@ namespace BoletoNet
                 _carteira = value;
             }
         }
+        public string VariacaoCarteira
+        {
+            get
+            {
+                return _variacaoCarteira;
+            }
+            set
+            {
+                _variacaoCarteira = value;
+            }
+        }
 
         public Endereco Endereco
         {
@@ -294,6 +315,114 @@ namespace BoletoNet
             set
             {
                 _mostrarCNPJnoBoleto = value;
+            }
+        }
+
+        public string Mensagem1
+        {
+            get
+            {
+                return Mensagem1;
+            }
+            set
+            {
+                _Mensagem1 = value;
+            }
+        }
+
+        public string Mensagem2
+        {
+            get
+            {
+                return Mensagem2;
+            }
+            set
+            {
+                _Mensagem2 = value;
+            }
+        }
+
+        public string Mensagem3
+        {
+            get
+            {
+                return Mensagem3;
+            }
+            set
+            {
+                _Mensagem3 = value;
+            }
+        }
+
+        public string Mensagem4
+        {
+            get
+            {
+                return Mensagem4;
+            }
+            set
+            {
+                _Mensagem4 = value;
+            }
+        }
+
+        public string Mensagem5
+        {
+            get
+            {
+                return Mensagem5;
+            }
+            set
+            {
+                _Mensagem5 = value;
+            }
+        }
+
+        public string Mensagem6
+        {
+            get
+            {
+                return Mensagem6;
+            }
+            set
+            {
+                _Mensagem6 = value;
+            }
+        }
+
+        public string Mensagem7
+        {
+            get
+            {
+                return Mensagem7;
+            }
+            set
+            {
+                _Mensagem7 = value;
+            }
+        }
+
+        public string Mensagem8
+        {
+            get
+            {
+                return Mensagem8;
+            }
+            set
+            {
+                _Mensagem8 = value;
+            }
+        }
+
+        public string Mensagem9
+        {
+            get
+            {
+                return Mensagem9;
+            }
+            set
+            {
+                _Mensagem9 = value;
             }
         }
 

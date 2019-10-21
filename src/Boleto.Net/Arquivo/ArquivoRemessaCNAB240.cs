@@ -56,18 +56,25 @@ namespace BoletoNet
             try
             {
                 int numeroRegistro = 0;
+
+                if (banco.Codigo == 001)
+                    numeroRegistro = 3;
+
                 int numeroRegistroDetalhe = 1;
                 string strline;
+
                 StreamWriter incluiLinha = new StreamWriter(arquivo);
+                
                 if (banco.Codigo == 104)//quando é caixa verifica o modelo de leiatue que é está em boletos.remssa.tipodocumento
                     strline = banco.GerarHeaderRemessa(numeroConvenio, cedente, TipoArquivo.CNAB240, numeroArquivoRemessa, boletos[0]);
                 else
                     strline = banco.GerarHeaderRemessa(numeroConvenio, cedente, TipoArquivo.CNAB240, numeroArquivoRemessa);
-
-                numeroRegistro++;
+                if(banco.Codigo != 001)
+                    numeroRegistro++;
 
                 if(ModoTeste)
                     strline = strline.Remove(50, 2).Insert(50, "TS");
+
                 incluiLinha.WriteLine(strline);
                 OnLinhaGerada(null, strline, EnumTipodeLinha.HeaderDeArquivo);
                 if (banco.Codigo == 104)//quando é caixa verifica o modelo de leiatue que é está em boletos.remssa.tipodocumento
@@ -81,9 +88,10 @@ namespace BoletoNet
                         strline = strline.Remove(51, 2).Insert(51, "TS");
                     incluiLinha.WriteLine(strline);
                     OnLinhaGerada(null, strline, EnumTipodeLinha.HeaderDeLote);
-                    numeroRegistro++;
+                    if (banco.Codigo != 001)
+                        numeroRegistro++;
                 }
-                
+
 
                 if (banco.Codigo == 341)
                 {
@@ -136,7 +144,7 @@ namespace BoletoNet
                     #endregion
                 }
                 else if (banco.Codigo == 104) // Só validar boleto.Remessa quando o banco for Caixa porque quando o banco for diferente de 104 a propriedade "Remessa" fica null
-                {                    
+                {
                     #region se Banco Caixa - 104 e tipo de arquivo da remessa SIGCB
                     if ((boletos[0].Remessa.TipoDocumento.Equals("2")) || boletos[0].Remessa.TipoDocumento.Equals("1"))
                     {
@@ -237,6 +245,7 @@ namespace BoletoNet
                 }
                 else if (banco.Codigo == 237) // bradesco
                 {
+                    #region se Banco Bradesco
                     decimal totalTitulos = 0;
                     foreach (Boleto boleto in boletos)
                     {
@@ -257,13 +266,56 @@ namespace BoletoNet
 
                     }
                     numeroRegistro++;
-                
-                    strline = banco.GerarTrailerRemessaComDetalhes(numeroRegistro, boletos.Count,  TipoArquivo.CNAB240, cedente, totalTitulos);
+
+                    strline = banco.GerarTrailerRemessaComDetalhes(numeroRegistro, boletos.Count, TipoArquivo.CNAB240, cedente, totalTitulos);
                     incluiLinha.WriteLine(strline);
                     OnLinhaGerada(null, strline, EnumTipodeLinha.TraillerDeArquivo);
 
                     incluiLinha.Close();
+                    #endregion
+                }
+                else if (banco.Codigo == 001)//banco do Brasil 
+                {
+                    #region se Banco do brasil
+                    foreach (Boleto boleto in boletos)
+                    {
+                        boleto.Banco = banco;
+                        strline = boleto.Banco.GerarDetalheSegmentoPRemessa(boleto, numeroRegistroDetalhe, numeroConvenio, cedente);
+                        incluiLinha.WriteLine(strline);
+                        OnLinhaGerada(boleto, strline, EnumTipodeLinha.DetalheSegmentoP);
+                        numeroRegistro++;
+                        numeroRegistroDetalhe++;
 
+                        strline = boleto.Banco.GerarDetalheSegmentoQRemessa(boleto, numeroRegistroDetalhe, boleto.Sacado);
+                        incluiLinha.WriteLine(strline);
+                        OnLinhaGerada(boleto, strline, EnumTipodeLinha.DetalheSegmentoQ);
+                        numeroRegistro++;
+                        numeroRegistroDetalhe++;
+
+                        if (boleto.ValorMulta > 0 )
+                        {
+                            strline = boleto.Banco.GerarDetalheSegmentoRRemessa(boleto, numeroRegistroDetalhe, TipoArquivo.CNAB240);
+                            incluiLinha.WriteLine(strline);
+                            OnLinhaGerada(boleto, strline, EnumTipodeLinha.DetalheSegmentoR);
+                            numeroRegistro++;
+                            numeroRegistroDetalhe++;
+                        }
+                    }
+
+                    numeroRegistro--;
+                    strline = banco.GerarTrailerLoteRemessa(numeroRegistro);
+                    incluiLinha.WriteLine(strline);
+                    OnLinhaGerada(null, strline, EnumTipodeLinha.TraillerDeLote);
+
+                    numeroRegistro++;
+                    numeroRegistro++;
+
+                    strline = banco.GerarTrailerArquivoRemessa(numeroRegistro);
+                    incluiLinha.WriteLine(strline);
+                    OnLinhaGerada(null, strline, EnumTipodeLinha.TraillerDeArquivo);
+
+                    incluiLinha.Close();
+                    #endregion
                 }
                 else //para qualquer outro banco, gera CNAB240 com segmentos abaixo
                 {

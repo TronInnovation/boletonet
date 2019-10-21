@@ -73,6 +73,8 @@ namespace BoletoNet
 		private string _tipoModalidade = string.Empty;
         private string _tipoImpressao = "A";
 		private Remessa _remessa;
+        private double _valorJurosMora;
+        private double _percJuros;
 
         private ObservableCollection<GrupoDemonstrativo> _demonstrativos;
 
@@ -135,11 +137,26 @@ namespace BoletoNet
 			this._valorCobrado = this.ValorCobrado;
 			this._cedente = new Cedente(new ContaBancaria(agencia, conta));
 		}
-		#endregion Construtor
+        #endregion Construtor
 
-		#region Properties
+        #region Properties
+        public double ValorJurosMora
+        {
+            get { return _valorJurosMora; }
+            set { _valorJurosMora = value; }
+        }
+        public DateTime DataDesconto2 { get; set; }
+        public string CodigoDesconto { get; set; }
+        public int CodigoMulta { get; set; }
+        public decimal ValorAbatimento { get; set; }
+        public double PercJuros
+        {
+            get { return this._percJuros; }
+            set { this._percJuros = value; }
+        }
 
-		public ObservableCollection<GrupoDemonstrativo> Demonstrativos
+        public int CodigoJuro { get; set; }
+        public ObservableCollection<GrupoDemonstrativo> Demonstrativos
 		{
 			get
 			{

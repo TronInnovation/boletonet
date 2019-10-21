@@ -126,6 +126,11 @@ namespace BoletoNet
                 _instrucoes = value;
             }
         }
+        public string TipoDeInscricao
+        {
+            get;
+            set;
+        }
         #endregion Properties
     }
 }
