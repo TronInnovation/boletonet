@@ -779,12 +779,11 @@ namespace BoletoNet
                     detalhe += Utils.FormatCode("", "0", 8); //Posição 119 a 126  - Data do Juros de Mora: preencher com a Data de Vencimento do Título
                     detalhe += Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true);
                 }
-                
                 detalhe += Utils.FormatCode(""," ", 10); //Posição 90 a 99 Informação ao Pagador: Brancos
                 detalhe += Utils.FormatCode(""," ", 40); //Posição 100 a 139 Informação ao Pagador: Brancos
                 detalhe += Utils.FormatCode(""," ", 40); //Posição 140 a 179 Informação ao Pagador: Brancos
                 detalhe += Utils.FormatCode(""," ", 20); //Posição 180 a 199 Uso Exclusivo FEBRABAN/CNAB: Brancos
-                detalhe += Utils.FormatCode("", "0", 8, true);  //Posição 200 a 207  Cód. Ocor. do Pagador: "00000000"
+                detalhe += Utils.FormatCode(boleto.DataLimitePagamento != DateTime.MinValue? boleto.DataLimitePagamento.ToString("ddMMyyyy"): "", "0", 8, true);  //Posição 200 a 207  Cód. Ocor. do Pagador: "00000000"
                 detalhe += Utils.FormatCode("", "0", 3, true);  //Posição 208 a 210  Cód. do Banco na Conta do Débito: "000"
                 detalhe += Utils.FormatCode("", "0", 5, true);  //Posição 211 a 215  Código da Agência do Débito: "00000"
                 detalhe += " "; //Posição 216 Dígito Verificador da Agência: Brancos
