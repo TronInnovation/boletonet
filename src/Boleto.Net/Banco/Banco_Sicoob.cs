@@ -779,6 +779,7 @@ namespace BoletoNet
                     detalhe += Utils.FormatCode("", "0", 8); //Posição 119 a 126  - Data do Juros de Mora: preencher com a Data de Vencimento do Título
                     detalhe += Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true);
                 }
+
                 detalhe += Utils.FormatCode(""," ", 10); //Posição 90 a 99 Informação ao Pagador: Brancos
                 detalhe += Utils.FormatCode(""," ", 40); //Posição 100 a 139 Informação ao Pagador: Brancos
                 detalhe += Utils.FormatCode(""," ", 40); //Posição 140 a 179 Informação ao Pagador: Brancos
