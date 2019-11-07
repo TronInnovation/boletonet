@@ -410,11 +410,23 @@ namespace BoletoNet
         {
             try
             {
-                return new HeaderRetorno(registro);
+                return new HeaderRetorno(400, registro);
             }
             catch (Exception ex)
             {
                 throw new Exception("Erro ao ler header do arquivo de RETORNO / CNAB 400.", ex);
+            }
+        }
+
+        public virtual HeaderRetorno LerHeaderRetornoCNAB240(string registro)
+        {
+            try
+            {
+                return new HeaderRetorno(240, registro);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao ler header do arquivo de RETORNO / CNAB 240.", ex);
             }
         }
 

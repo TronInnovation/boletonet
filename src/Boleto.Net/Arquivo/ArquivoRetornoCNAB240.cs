@@ -9,6 +9,7 @@ namespace BoletoNet
     {
         private Stream _streamArquivo;
         //private string _caminhoArquivo;
+        private HeaderRetorno _headerRetorno = new HeaderRetorno();
         private List<DetalheRetornoCNAB240> _listaDetalhes = new List<DetalheRetornoCNAB240>();
 
         #region Propriedades
@@ -25,8 +26,14 @@ namespace BoletoNet
             get { return _listaDetalhes; }
             set { _listaDetalhes = value; }
         }
+        public HeaderRetorno HeaderRetorno
+        {
+            get { return _headerRetorno; }
+            set { _headerRetorno = value; }
+        }
+
         #endregion Propriedades
-        
+
         #region Construtores
 
         public ArquivoRetornoCNAB240()
@@ -60,7 +67,14 @@ namespace BoletoNet
             try
              {
                 StreamReader stream = new StreamReader(arquivo, System.Text.Encoding.UTF8);
-                string linha = "";
+                // Identificação do registro detalhe
+                List<string> IdsRegistroDetalhe = new List<string>();
+
+                // Lendo o arquivo
+                string linha = stream.ReadLine();
+                this.HeaderRetorno = banco.LerHeaderRetornoCNAB240(linha);
+
+                // Próxima linha (DETALHE)
 
                 while ((linha = stream.ReadLine()) != null)
                 {

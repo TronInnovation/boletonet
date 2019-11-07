@@ -126,6 +126,8 @@ namespace BoletoNet
         DetalheRetorno LerDetalheRetornoCNAB400(string registro);
         HeaderRetorno LerHeaderRetornoCNAB400(string registro);
 
+        HeaderRetorno LerHeaderRetornoCNAB240(string registro);
+
         Cedente Cedente { get; }
         int Codigo { get; set;}
         string Nome { get; }

@@ -732,7 +732,7 @@ namespace BoletoNet
         {
             try
             {
-                return new HeaderRetorno(registro)
+                return new HeaderRetorno(400, registro)
                 {
                     TipoRegistro = Utils.ToInt32(registro.Substring(000, 1)),
                     CodigoRetorno = Utils.ToInt32(registro.Substring(001, 1)),

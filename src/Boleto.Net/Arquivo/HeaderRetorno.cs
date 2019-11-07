@@ -37,7 +37,7 @@ namespace BoletoNet
             DACConta = 0;
         }
 
-        public HeaderRetorno(string registro)
+        public HeaderRetorno(int layout, string registro)
         {
             NumeroSequencial = 0;
             CodigoBanco = 0;
@@ -51,7 +51,14 @@ namespace BoletoNet
             TipoRegistro = 0;
             DACConta = 0;
             Registro = registro;
-            this.LerHeaderRetornoCNAB400(registro);
+            
+            if(layout == 400){
+                this.LerHeaderRetornoCNAB400(registro);
+            }
+            else
+            {
+                this.LerHeaderRetornoCNAB240(registro);
+            }
         }
 
         #endregion
@@ -179,6 +186,30 @@ namespace BoletoNet
                 this.DataCredito = Utils.ToDateTime(Utils.ToInt32(registro.Substring(113, 6)).ToString("##-##-##"));
                 this.ComplementoRegistro3 = registro.Substring(119, 275);
                 this.NumeroSequencial = Utils.ToInt32(registro.Substring(394, 6));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao ler header do arquivo de RETORNO / CNAB 400.", ex);
+            }
+        }
+
+        public void LerHeaderRetornoCNAB240(string registro)
+        {
+            try
+            {
+                this.CodigoBanco = Utils.ToInt32(registro.Substring(000, 3));
+                this.TipoRegistro = Utils.ToInt32(registro.Substring(003, 1));
+                this.Agencia = Utils.ToInt32(registro.Substring(52, 5));
+                this.ComplementoRegistro1 = Utils.ToInt32(registro.Substring(030, 2));
+                this.Conta = Utils.ToInt32(registro.Substring(58, 12));
+                this.DACConta = Utils.ToInt32(registro.Substring(70, 1));
+                this.NomeEmpresa = registro.Substring(72, 30);
+                this.NomeBanco = registro.Substring(102, 15);
+                this.DataGeracao = Utils.ToDateTime(Utils.ToInt32(registro.Substring(143, 6)).ToString("##-##-##"));
+                this.UnidadeDensidade = registro.Substring(166, 3);
+                this.NumeroSequencialArquivoRetorno = Utils.ToInt32(registro.Substring(157, 6));
+                this.DataCredito = Utils.ToDateTime(Utils.ToInt32(registro.Substring(143, 6)).ToString("##-##-##"));
+                this.NumeroSequencial = Utils.ToInt32(registro.Substring(157, 6));
             }
             catch (Exception ex)
             {
