@@ -920,6 +920,7 @@ namespace BoletoNet
                 
                 //Identificação do Título no Banco
                 detalhe.NossoNumero = registro.Substring(62, 11);
+                detalhe.NossoNumeroComDV = registro.Substring(62, 12);
                 detalhe.DACNossoNumero = registro.Substring(73, 1);
 
                 switch (registro.Substring(106, 2)) // Carteira
