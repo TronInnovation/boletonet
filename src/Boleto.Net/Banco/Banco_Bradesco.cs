@@ -1025,8 +1025,8 @@ namespace BoletoNet
                 _detalhe += boleto.DataProcessamento.ToString("ddMMyy"); //Data da emissão do Título (6, N) DDMMAA
 
                 //Valida se tem instrução no list de instruções, repassa ao arquivo de remessa
-                string vInstrucao1 = "00"; //1ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
-                string vInstrucao2 = "00"; //2ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
+                string vInstrucao1 = boleto.ProtestaTitulos == true ? "06" : "00"; //1ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
+                string vInstrucao2 = Utils.FitStringLength(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "00", 2, 2, '0', 0, true, true, true); //2ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
 
                 foreach (var instrucao in boleto.Instrucoes)
                 {

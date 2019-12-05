@@ -663,11 +663,13 @@ namespace BoletoNet
                 detalhe += Utils.FormatCode(boleto.IOF.ToString(), 15);//Posição 166 a 180   -  Valor do IOF a ser Recolhido
                 detalhe += Utils.FormatCode(boleto.Abatimento.ToString(), 15);//Posição 181 a 195   - Valor do Abatimento
                 detalhe += Utils.FormatCode(boleto.NumeroDocumento, " ", 25); //Posição 196 a 220  - Identificação do título
-                detalhe += "3"; //Posição 221  - Código do protesto 3 = Nao Protestar
+
+                detalhe += Utils.FormatCode(boleto.ProtestaTitulos == true ? "1" : "3", "0", 1, true);//Posição 221 a 222 - protesta titulos
+                
 
                 #region Instruções
 
-                string vInstrucao1 = "00"; //2ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
+                string vInstrucao1 = Utils.FormatCode(boleto.NumeroDiasProtesto.ToString(), "0", 2, true); //2ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
                 foreach (IInstrucao instrucao in boleto.Instrucoes)
                 {
                     switch ((EnumInstrucoes_Sicoob)instrucao.Codigo)
@@ -1058,6 +1060,7 @@ namespace BoletoNet
                 detalhe.Conta = Convert.ToInt32(registro.Substring(23, 12));
                 detalhe.DigitoConta = registro.Substring(35, 1);
                 detalhe.NossoNumero = registro.Substring(37, 20);
+                detalhe.NossoNumeroComDV = registro.Substring(37, 21);
                 detalhe.CodigoCarteira = Convert.ToInt32(registro.Substring(57, 1));
                 detalhe.NumeroDocumento = registro.Substring(58, 15);
                 int dataVencimento = Convert.ToInt32(registro.Substring(73, 8));

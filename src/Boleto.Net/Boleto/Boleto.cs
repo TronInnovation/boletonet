@@ -655,6 +655,8 @@ namespace BoletoNet
 
         public DateTime? DataDescontoAntecipacao3 { get; set; }
         public decimal? ValorDescontoAntecipacao3 { get; set; }
+        public bool? ProtestaTitulos { get; set; }
+        public int? NumeroDiasProtesto { get; set; }
         
         #endregion Properties
 

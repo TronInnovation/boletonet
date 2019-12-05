@@ -1577,8 +1577,8 @@ namespace BoletoNet
                 _segmentoP += Utils.FitStringLength(boleto.IOF.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true);
                 _segmentoP += Utils.FitStringLength(string.Format("{0:F2}", boleto.ValorAbatimento).Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true);
                 _segmentoP += Utils.FitStringLength(boleto.NossoNumero, 25, 25, '0', 0, true, true, true);
-                _segmentoP += "3";
-                _segmentoP += "00";
+                _segmentoP += Utils.FitStringLength(boleto.ProtestaTitulos == true ? "1" : "3", 1, 1, '0', 0, true, true, true);
+                _segmentoP += Utils.FitStringLength(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "00", 2, 2, '0', 2, true, true, true);
 
                 _segmentoP += "0000090000000000 ";
 

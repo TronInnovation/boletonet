@@ -920,8 +920,8 @@ namespace BoletoNet
                 header += Utils.FormatCode(boleto.Abatimento.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 13); // Valor do Abatimento 
 
                 header += Utils.FormatCode("", " ", 25);                                                // Identificação do Título na Empresa
-                header += (_protestar ? "1" : "3");                                                      // Código para Protesto
-                header += _diasProtesto.ToString("00");                                                  // Número de Dias para Protesto 2 posi
+                header += (boleto.ProtestaTitulos == true ? "1" : "3");                                                      // Código para Protesto
+                header += Utils.FormatCode(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "00", "0", 2);// Número de Dias para Protesto 2 posi
                 header += (_baixaDevolver ? "1" : "2");                                                  // Código para Baixa/Devolução 1 posi
                 header += _diasDevolucao.ToString("00");                                                 // Número de Dias para Baixa/Devolução 3 posi
                 header += boleto.Moeda.ToString("00");                                                  // Código da Moeda 
@@ -1710,10 +1710,10 @@ namespace BoletoNet
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediDataDDMMAA___________, 0151, 006, 0, boleto.DataDocumento, ' '));                      //151-156
                 //
                 #region Instruções
-                string vInstrucao1 = "0";
+                string vInstrucao1 = boleto.ProtestaTitulos == true ? "01" : "02";
                 string vInstrucao2 = "0";
                 string vInstrucao3 = "0";
-                int prazoProtesto_Devolucao = 0;
+                int prazoProtesto_Devolucao = boleto.ProtestaTitulos == true ? (int)boleto.NumeroDiasProtesto : 0;
 
                 foreach (IInstrucao instrucao in boleto.Instrucoes)
                 {

@@ -900,8 +900,8 @@ namespace BoletoNet
                 //Identificação do título na empresa ==> 196 - 220
                 _segmentoP += Utils.FitStringLength(boleto.NumeroDocumento, 25, 25, ' ', 0, true, true, false);
 
-                string codigo_protesto = "0";
-                string dias_protesto = "00";
+                string codigo_protesto = boleto.ProtestaTitulos == true ? "1" : "0";
+                string dias_protesto = Utils.FitStringLength(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "00", 2, 2, '0', 0, true, true, true);
 
                 foreach (var instrucao in boleto.Instrucoes)
                 {

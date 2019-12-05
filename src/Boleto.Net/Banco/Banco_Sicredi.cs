@@ -544,8 +544,8 @@ namespace BoletoNet
                 detalhe.Append(Utils.FitStringLength(boleto.IOF.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//Posição 166 a 180 
                 detalhe.Append(Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true));//Posição 181 a 195 
                 detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 25, 25, '0', 0, true, true, true));//Posição 196 a 220
-                detalhe.Append("3");//Posição 221 
-                detalhe.Append("30");//Posição 222 a 223   
+                detalhe.Append(boleto.ProtestaTitulos == true ? "1" : "3");//Protesto
+                detalhe.Append(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "30");//dias protesto
                 detalhe.Append("1");//Posição 224
                 detalhe.Append("060");//Posição 225 a 227
                 detalhe.Append("09");//Posição 228 a 229
@@ -1313,8 +1313,10 @@ namespace BoletoNet
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediAlphaAliEsquerda_____, 0150, 001, 0, boleto.Aceite, ' '));                             //150-150
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediDataDDMMAA___________, 0151, 006, 0, boleto.DataProcessamento, ' '));                  //151-156
                 #region Instruções
-                string vInstrucao1 = "00"; //1ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
-                string vInstrucao2 = "00"; //2ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
+                string vInstrucao1 = boleto.ProtestaTitulos == true ? "06" : "00"; //1ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
+                string vInstrucao2 = boleto.ProtestaTitulos == true ? Utils.FormatCode(boleto.NumeroDiasProtesto.ToString(), "0", 2, true) : "00"; //2ª instrução (2, N) Caso Queira colocar um cod de uma instrução. ver no Manual caso nao coloca 00
+                
+                        
                 foreach (IInstrucao instrucao in boleto.Instrucoes)
                 {
                     switch ((EnumInstrucoes_Sicredi)instrucao.Codigo)
