@@ -18,6 +18,7 @@ namespace BoletoNet
         private string _digitoConta;
         private int _dacAgConta;
         private string _nossoNumero; //identificação do título no banco
+        private string _NossoNumeroComDV;
         private int _codigoCarteira;
         private string _numeroDocumento; //número utilizado pelo cliente para a identificação do título
         private DateTime _dataVencimento;
@@ -117,6 +118,12 @@ namespace BoletoNet
             set { _nossoNumero = value; }
         }
 
+        public string NossoNumeroComDV
+        {
+            get { return _NossoNumeroComDV; }
+            set { _NossoNumeroComDV = value; }
+        }
+
         public int CodigoCarteira
         {
             get { return _codigoCarteira; }
@@ -210,6 +217,7 @@ namespace BoletoNet
                 DigitoConta = registro.Substring(35, 1);
 
                 NossoNumero = registro.Substring(37, 20);
+                NossoNumeroComDV = registro.Substring(37, 21);
                 CodigoCarteira = Convert.ToInt32(registro.Substring(57, 1));
                 NumeroDocumento = registro.Substring(58, 15);
                 int dataVencimento = Convert.ToInt32(registro.Substring(73, 8));
