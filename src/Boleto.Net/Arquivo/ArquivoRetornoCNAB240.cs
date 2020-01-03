@@ -108,20 +108,20 @@ namespace BoletoNet
                                     //Irá ler o Segmento T e em sequencia o Segmento U
 
 
+                                    OnLinhaLida(detalheRetorno, linha, EnumTipodeLinhaLida.DetalheSegmentoT);
+                                    detalheRetorno.SegmentoT = banco.LerDetalheSegmentoTRetornoCNAB240(linha);
+                                       //linha = stream.ReadLine();
 
-                                    if (banco.Codigo == 748)
-                                    {
-                                        detalheRetorno.SegmentoT = banco.LerDetalheSegmentoTRetornoCNAB240(linha);
-                                        linha = stream.ReadLine();
+                                }
+                                else if (linha.Substring(13, 1) == "U")
+                                {
 
-                                    }
-                                    else
-                                    {
-                                        detalheRetorno.SegmentoU = banco.LerDetalheSegmentoURetornoCNAB240(linha);
-                                        linha = stream.ReadLine();
-                                       
-                                    }
                                     OnLinhaLida(detalheRetorno, linha, EnumTipodeLinhaLida.DetalheSegmentoU);
+                                    detalheRetorno.SegmentoU = banco.LerDetalheSegmentoURetornoCNAB240(linha);
+                                   //linha = stream.ReadLine();
+
+
+
                                 }
                                 ListaDetalhes.Add(detalheRetorno);
                                 break;
