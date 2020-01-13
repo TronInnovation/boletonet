@@ -110,19 +110,15 @@ namespace BoletoNet
 
                                     OnLinhaLida(detalheRetorno, linha, EnumTipodeLinhaLida.DetalheSegmentoT);
                                     detalheRetorno.SegmentoT = banco.LerDetalheSegmentoTRetornoCNAB240(linha);
-                                       //linha = stream.ReadLine();
-
-                                }
-                                else if (linha.Substring(13, 1) == "U")
-                                {
-
+                                    linha = stream.ReadLine();
+                                    
                                     OnLinhaLida(detalheRetorno, linha, EnumTipodeLinhaLida.DetalheSegmentoU);
                                     detalheRetorno.SegmentoU = banco.LerDetalheSegmentoURetornoCNAB240(linha);
-                                   //linha = stream.ReadLine();
-
 
 
                                 }
+                              
+                               
                                 ListaDetalhes.Add(detalheRetorno);
                                 break;
                             case "5": //Trailler de lote
