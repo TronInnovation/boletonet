@@ -1704,7 +1704,7 @@ namespace BoletoNet
 
                 detalhe.CodigoLiquidacao = registro.Substring(392, 2);
                 detalhe.NumeroSequencial = Utils.ToInt32(registro.Substring(394, 6));
-                detalhe.ValorPago = detalhe.ValorPrincipal;
+                detalhe.ValorPago = detalhe.ValorPrincipal + detalhe.TarifaCobranca;
 
                 // A correspondência de Valor Pago no RETORNO ITAÚ é o Valor Principal (Valor lançado em Conta Corrente - Conforme Manual)
                 // A determinação se Débito ou Crédito deverá ser feita nos aplicativos por se tratar de personalização.
