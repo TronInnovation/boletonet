@@ -22,7 +22,8 @@ namespace BoletoNet
         private string _digitoNossoNumero = string.Empty;
         private bool _apenasRegistrar = false;
 		private DateTime _dataVencimento;
-		private DateTime _dataDocumento;
+        private DateTime _dataMora;
+        private DateTime _dataDocumento;
 		private DateTime _dataProcessamento;
         private int _totalParcela;
 		private int _numeroParcela;
@@ -85,12 +86,13 @@ namespace BoletoNet
 		{
 		}
 
-		public Boleto(DateTime dataVencimento, decimal valorBoleto, string carteira, string nossoNumero, Cedente cedente, IEspecieDocumento especieDocumento)
+		public Boleto(DateTime dataVencimento, decimal valorBoleto, string carteira, string nossoNumero, Cedente cedente, IEspecieDocumento especieDocumento,DateTime dataMora)
 		{
 			this._carteira = carteira;
 			this._nossoNumero = nossoNumero;
 			this._dataVencimento = dataVencimento;
-			this._valorBoleto = valorBoleto;
+            this._dataMora = dataMora;
+            this._valorBoleto = valorBoleto;
 			this._valorCobrado = this.ValorCobrado;
 			this._cedente = cedente;
 
@@ -200,10 +202,16 @@ namespace BoletoNet
 			set { this._dataVencimento = value; }
 		}
 
-		/// <summary> 
-		/// Retorna o valor do titulo.
-		/// </summary>
-		public decimal ValorBoleto
+        public DateTime DataMora
+        {
+            get { return this._dataMora; }
+            set { this._dataMora = value; }
+        }
+
+        /// <summary> 
+        /// Retorna o valor do titulo.
+        /// </summary>
+        public decimal ValorBoleto
 		{
 			get { return this._valorBoleto; }
 			set { this._valorBoleto = value; }

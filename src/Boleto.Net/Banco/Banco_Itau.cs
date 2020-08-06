@@ -1303,7 +1303,7 @@ namespace BoletoNet
                 {
                     _detalhe += Utils.FitStringLength(boleto.Sacado.Nome, 30, 30, ' ', 0, true, true, false).ToUpper();
                     _detalhe += "    "; // Complemento do registro
-                    _detalhe += boleto.DataVencimento.ToString("ddMMyy"); //Data de Mora
+                    _detalhe += boleto.DataMora.ToString("ddMMyyyy"); //Data de Mora
 
                     if (boleto.Instrucoes.Count > 0)
                     {
