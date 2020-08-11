@@ -533,7 +533,7 @@ namespace BoletoNet
                 detalhe.Append(Utils.FitStringLength(boleto.DataVencimento.AddDays(1).ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, true));//Posição 119 a 126
 
                 if (boleto.CodJurosMora == "1" || boleto.CodJurosMora == null || boleto.CodJurosMora != "0")//Atribuindo a porcentagem de juros diários
-                    valorJuros = (decimal)(boleto.JurosMora / 30);
+                    valorJuros = (decimal)(((boleto.ValorBoleto * boleto.PercJurosMora) / 100) );
                 else                                                      //Calculando valor do juros com base na porcentagem informada  
                     valorJuros = (decimal)(((boleto.ValorBoleto * boleto.PercJurosMora) / 100) / 30);
 
