@@ -1704,11 +1704,11 @@ namespace BoletoNet
                 _segmentoS += "3";
                 _segmentoS += Utils.FitStringLength(numeroRegistro.ToString(), 5, 5, '0', 0, true, true, true);
                 _segmentoS += "5 013";
-                _segmentoS += Utils.FitStringLength(boleto.Cedente.Mensagem5 != null ? boleto.Cedente.Mensagem5 : "", 40, 40, ' ', 0, true, true, false);
-                _segmentoS += Utils.FitStringLength(boleto.Cedente.Mensagem6 != null ? boleto.Cedente.Mensagem6 : "", 40, 40, ' ', 0, true, true, false);
-                _segmentoS += Utils.FitStringLength(boleto.Cedente.Mensagem7 != null ? boleto.Cedente.Mensagem7 : "", 40, 40, ' ', 0, true, true, false);
-                _segmentoS += Utils.FitStringLength(boleto.Cedente.Mensagem8 != null ? boleto.Cedente.Mensagem8 : "", 40, 40, ' ', 0, true, true, false);
-                _segmentoS += Utils.FitStringLength(boleto.Cedente.Mensagem9 != null ? boleto.Cedente.Mensagem9 : "", 40, 40, ' ', 0, true, true, false);
+                _segmentoS += Utils.FitStringLength( "", 40, 40, ' ', 0, true, true, false);
+                _segmentoS += Utils.FitStringLength( "", 40, 40, ' ', 0, true, true, false);
+                _segmentoS += Utils.FitStringLength( "", 40, 40, ' ', 0, true, true, false);
+                _segmentoS += Utils.FitStringLength( "", 40, 40, ' ', 0, true, true, false);
+                _segmentoS += Utils.FitStringLength( "", 40, 40, ' ', 0, true, true, false);
                 _segmentoS += new string(' ', 22);
                 
                 _segmentoS = Utils.SubstituiCaracteresEspeciais(_segmentoS);

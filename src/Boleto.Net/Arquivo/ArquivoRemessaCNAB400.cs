@@ -54,7 +54,11 @@ namespace BoletoNet
                 int numeroRegistro = 2;
                 string strline;
                 decimal vltitulostotal = 0;                 //Uso apenas no registro TRAILER do banco Santander - jsoda em 09/05/2012 - Add no registro TRAILER do banco Banrisul - sidneiklein em 08/08/2013
-
+                var quantidadeRegistros =  Convert.ToDouble( boletos.Count +1) ; //somente brb
+                if(banco.Codigo == 070 || banco.Codigo ==70)
+                {
+                    numeroConvenio = quantidadeRegistros.ToString();
+                }
                 StreamWriter incluiLinha = new StreamWriter(arquivo, Encoding.GetEncoding("ISO-8859-1"));
                 cedente.Carteira = boletos[0].Carteira;
                 strline = banco.GerarHeaderRemessa(numeroConvenio, cedente, TipoArquivo.CNAB400, numeroArquivoRemessa);
@@ -67,6 +71,16 @@ namespace BoletoNet
                     incluiLinha.WriteLine(strline);
                     vltitulostotal += boleto.ValorBoleto;   //Uso apenas no registro TRAILER do banco Santander - jsoda em 09/05/2012 - Add no registro TRAILER do banco Banrisul - sidneiklein em 08/08/2013
                     numeroRegistro++;
+
+                    // 070 - Banco BRB
+                    //if (banco.Codigo == 70 || banco.Codigo == 070)
+                    //{
+                    //    Banco_BRB _banco = new Banco_BRB();
+                    //    strline = _banco.GerarDetalheRemessaBRB(boleto, numeroRegistro, TipoArquivo.CNAB400);
+                    //    incluiLinha.WriteLine(strline);
+                    //    numeroRegistro++;
+
+                   // }
 
                     // Banco CrediSis - 97
                     if (banco.Codigo == 97)
@@ -112,6 +126,8 @@ namespace BoletoNet
                             numeroRegistro++;
                         }
                     }
+
+                   
 
                     if ((boleto.Instrucoes != null && boleto.Instrucoes.Count > 0) || (boleto.Sacado.Instrucoes != null && boleto.Sacado.Instrucoes.Count > 0))
                     {
