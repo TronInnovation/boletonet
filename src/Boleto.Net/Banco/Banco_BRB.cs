@@ -321,6 +321,32 @@ namespace BoletoNet
             }
         }
 
+        public override HeaderRetorno LerHeaderRetornoCNAB400(string registro)
+        {
+            try
+            {
+                HeaderRetorno header = new HeaderRetorno(400, registro);
+
+                header.ComplementoRegistro1 = Utils.ToInt32(registro.Substring(000, 1));
+                header.CodigoRetorno = Utils.ToInt32(registro.Substring(001, 1));
+                header.LiteralRetorno = registro.Substring(002, 7);
+                header.CodigoServico = Utils.ToInt32(registro.Substring(009, 2));
+                header.LiteralServico = registro.Substring(01, 15);
+                header.Conta = Utils.ToInt32(registro.Substring(0, 20));
+                header.NomeEmpresa = registro.Substring(046, 20);
+                header.CodigoBanco = Utils.ToInt32(registro.Substring(076, 3));
+                header.NomeBanco = registro.Substring(079, 15);
+                header.DataCredito = Utils.ToDateTime(Utils.ToInt32(registro.Substring(094, 285)).ToString("ddMMyyyy"));
+                header.DataGeracao = Utils.ToDateTime(Utils.ToInt32(registro.Substring(094, 15)).ToString("ddMMyyyy"));
+                header.NumeroSequencial = Utils.ToInt32(registro.Substring(394, 6));
+                return header;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao ler header do arquivo de RETORNO / CNAB 400.", ex);
+            }
+        }
+
         public override DetalheRetorno LerDetalheRetornoCNAB400(string registro)
         {
             try
@@ -329,26 +355,15 @@ namespace BoletoNet
 
                 //Tipo de Identificação do registro
                 detalhe.IdentificacaoDoRegistro = Utils.ToInt32(registro.Substring(0, 1));
-                //AGENCIA Conta Corrente
-                detalhe.ContaCorrente = Utils.ToInt32(registro.Substring(2, 5));
-
-                //Conta Corrente
-                detalhe.ContaCorrente = Utils.ToInt32(registro.Substring(6, 13));
-
-
-                //nome pagador
-                detalhe.CgcCpf = registro.Substring(14, 28);
-
-                //CGC ou CPF
-                detalhe.NomeSacado = registro.Substring(14, 28);
-
 
                 //Tipo de inscrição
                 detalhe.TipoInscricao = Utils.ToInt32(registro.Substring(1, 2));
 
+                //CGC ou CPF
+                detalhe.CgcCpf = registro.Substring(3, 14);
 
-
-
+                //Conta Corrente
+                detalhe.ContaCorrente = Utils.ToInt32(registro.Substring(20, 17));
 
                 //Nosso Número
                 detalhe.NossoNumeroComDV = registro.Substring(70, 12);
@@ -358,7 +373,7 @@ namespace BoletoNet
                 detalhe.SeuNumero = registro.Substring(92, 13);
 
                 //Instrução
-                detalhe.Instrucao = Utils.ToInt32(registro.Substring(108, 2));
+                detalhe.CodigoOcorrencia = Utils.ToInt32(registro.Substring(108, 2));
 
                 //Número do documento
                 detalhe.NumeroDocumento = registro.Substring(128, 12);
@@ -441,6 +456,7 @@ namespace BoletoNet
             }
         }
 
+       
 
         /// <summary>
         /// Efetua as Validações dentro da classe Boleto, para garantir a geração da remessa
