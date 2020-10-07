@@ -253,7 +253,7 @@ namespace BoletoNet
                 header += "001";//versão
                 header += "075";// arquivo
                 header += cedente.ContaBancaria.Agencia.ToString();// numero agencia
-                header += cedente.ContaBancaria.Conta.ToString().PadLeft(7, '0'); ;  // numero conta corrente
+                header += cedente.ContaBancaria.Conta.ToString() + cedente.ContaBancaria.DigitoConta.ToString();  // numero conta corrente
                 header += DateTime.Now.ToString("yyyyMMdd"); // data de formatação
                 header += DateTime.Now.ToString("hhMMss"); // hora de formatação
                 header += numeroConvenio.ToString().PadLeft(6, '0'); // header+registros
@@ -274,7 +274,7 @@ namespace BoletoNet
                 string _detalhe;
                 _detalhe = "01";// identificacao registro 1 a 2
                 _detalhe += Utils.FitStringLength(boleto.ContaBancaria.Agencia.ToString(), 3, 3, '0', 0, true, true, false); //agencia 3 a 5
-                _detalhe += Utils.FitStringLength(boleto.ContaBancaria.Conta.ToString(), 7, 7, '0', 0, true, true, false);//conta + digito conta 6  a 12
+                _detalhe += Utils.FitStringLength(boleto.ContaBancaria.Conta.ToString() + boleto.ContaBancaria.DigitoConta.ToString(), 7, 7, '0', 0, true, true, false);//conta + digito conta 6  a 12
                 _detalhe += Utils.FitStringLength(boleto.Sacado.CPFCNPJ.Replace(".", "").Replace("-", "").Replace("/", ""), 14, 14, ' ', ' ', true, true, false);//cpf ou cnpj 12 a 26
                 _detalhe += Utils.FitStringLength(boleto.Sacado.Nome, 35, 35, ' ', ' ', true, true, false); //nome pagador 27 a 61
                 _detalhe += Utils.FitStringLength(boleto.Sacado.Endereco.End, 35, 35, ' ', ' ', true, true, false); //endereco pagador 62 a 96
@@ -373,7 +373,7 @@ namespace BoletoNet
                 detalhe.SeuNumero = registro.Substring(92, 13);
 
                 //Instrução
-                detalhe.CodigoOcorrencia = Utils.ToInt32(registro.Substring(108, 2));
+                detalhe.CodigoOcorrencia= Utils.ToInt32(registro.Substring(108, 2));
 
                 //Número do documento
                 detalhe.NumeroDocumento = registro.Substring(128, 12);
