@@ -1303,7 +1303,7 @@ namespace BoletoNet
                 {
                     _detalhe += Utils.FitStringLength(boleto.Sacado.Nome, 30, 30, ' ', 0, true, true, false).ToUpper();
                     _detalhe += "    "; // Complemento do registro
-                    _detalhe += boleto.DataMora.ToString("ddMMyyyy"); //Data de Mora
+                    _detalhe += boleto.DataJurosMora.ToString("ddMMyy"); //Data de Mora
 
                     if (boleto.Instrucoes.Count > 0)
                     {
@@ -1313,16 +1313,16 @@ namespace BoletoNet
                                 boleto.Instrucoes[i].Codigo == (int)EnumInstrucoes_Itau.ProtestarAposNDiasCorridos ||
                                 boleto.Instrucoes[i].Codigo == (int)EnumInstrucoes_Itau.ProtestarAposNDiasUteis)
                             {
-                                _detalhe += boleto.Instrucoes[i].QuantidadeDias.ToString("00");
+                                _detalhe += Utils.FitStringLength(boleto.Instrucoes[i].QuantidadeDias.ToString(), 2, 2, '0', 0, true, true, true);
                                 break;
                             }
                             else if (i == boleto.Instrucoes.Count - 1)
-                                _detalhe += "00";
+                                _detalhe += "30";
                         }
                     }
                     else
                     {
-                        _detalhe += "00";
+                        _detalhe += "30";
                     }
 
                     _detalhe += " "; // Complemento do registro
