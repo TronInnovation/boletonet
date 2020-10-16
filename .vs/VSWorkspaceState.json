@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\src"
+    "\\src",
+    "\\src\\Boleto.Net"
   ],
-  "SelectedNode": "\\src\\Boleto.Net.sln",
+  "SelectedNode": "\\src\\Boleto.Net",
   "PreviewInSolutionExplorer": false
 }
