@@ -45,6 +45,11 @@ namespace BoletoNet
 			get { return _IBanco.Digito; }
 		}
 
+		public string CodigoFormatado
+        {
+			get { return string.Format("{0:000}-{1}", _IBanco.Codigo, _IBanco.Digito); }
+        }
+
 		public string Nome
 		{
 			get { return _IBanco.Nome; }

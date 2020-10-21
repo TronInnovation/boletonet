@@ -83,7 +83,7 @@ namespace BoletoNet
 
         public override void FormataNossoNumero(Boleto boleto)
         {
-            boleto.NossoNumero = string.Format("{0}{1}{2}", boleto.Categoria, boleto.NossoNumero, Utils.FormatCode(Codigo.ToString(), 3) + boleto.CodigoBarra.Chave.Substring(23, 2));
+            boleto.NossoNumero = string.Format("{0}{1}{2}", boleto.Categoria, boleto.NossoNumeroSemFormatacao, Utils.FormatCode(Codigo.ToString(), 3) + boleto.CodigoBarra.Chave.Substring(23, 2));
         }
 
         public override void FormataNumeroDocumento(Boleto boleto)
@@ -102,6 +102,8 @@ namespace BoletoNet
                 throw new NotImplementedException("A quantidade de dígitos do nosso número para a carteira " + boleto.Carteira + ", são 6 números.");
             else if (Convert.ToInt32(boleto.NossoNumero).ToString().Length < 6)
                 boleto.NossoNumero = Utils.FormatCode(boleto.NossoNumero, 6);
+
+            boleto.NossoNumeroSemFormatacao = boleto.NossoNumero;
 
             if (boleto.Carteira != "COB")
                 throw new NotImplementedException("Carteira não implementada. Utilize a carteira COB.");
@@ -139,7 +141,7 @@ namespace BoletoNet
             string conta = boleto.Cedente.ContaBancaria.Conta + boleto.Cedente.ContaBancaria.DigitoConta;
             int categoria = 1;
             boleto.Categoria = categoria;
-            string nossonumero = boleto.NossoNumero;
+            string nossonumero = boleto.NossoNumeroSemFormatacao;
             string banco = Utils.FormatCode(Codigo.ToString(), 3);
 
             //Mod10 dentro da classe Banco_BRB pelas particularidades que ela tem.
@@ -271,6 +273,8 @@ namespace BoletoNet
         {
             try
             {
+                ValidaBoleto(boleto);
+                
                 string _detalhe;
                 _detalhe = "01";// identificacao registro 1 a 2
                 _detalhe += Utils.FitStringLength(boleto.ContaBancaria.Agencia.ToString(), 3, 3, '0', 0, true, true, false); //agencia 3 a 5
@@ -282,20 +286,22 @@ namespace BoletoNet
                 _detalhe += Utils.FitStringLength(boleto.Sacado.Endereco.UF, 2, 2, ' ', 0, true, true, false); //uf pagador 112 a 113
                 _detalhe += Utils.FitStringLength(boleto.Sacado.Endereco.CEP.Replace(".", "").Replace("-", ""), 8, 8, ' ', 0, true, true, false); //uf pagador 114 a 121
                 _detalhe += Utils.FitStringLength(boleto.Sacado.CPFCNPJ.Length > 11 ? "2" : "1", 1, 1, ' ', 0, true, true, false); //uf pagador 122 a 122
-                _detalhe += Utils.FitStringLength("", 13, 13, ' ', 0, true, true, false); //seu numero 123 a 135
-                _detalhe += Utils.FitStringLength("2", 1, 1, ' ', 0, true, true, false); //cod categoria cobranca 136 a 136
+                _detalhe += Utils.FitStringLength(boleto.NumeroDocumento, 13, 13, ' ', 0, true, true, false); //seu numero 123 a 135
+                _detalhe += Utils.FitStringLength("1", 1, 1, ' ', 0, true, true, false); //cod categoria cobranca 136 a 136
                 _detalhe += Utils.FitStringLength(DateTime.Now.ToString("ddMMyyyy"), 8, 8, ' ', 0, true, true, false); //data emissao titulo 137 a 144
                 _detalhe += Utils.FitStringLength("21", 2, 2, ' ', 0, true, true, false); //cod  tipo documento 145 a 146
                 _detalhe += Utils.FitStringLength("0", 1, 1, ' ', 0, true, true, false); //cod  natureza 0 -simples 147 a 147 
                 _detalhe += Utils.FitStringLength("0", 1, 1, ' ', 0, true, true, false); //cod  cond pagamento 148 a 148
                 _detalhe += Utils.FitStringLength("02", 2, 2, ' ', 0, true, true, false); //cod da moeda 149 a 150
                 _detalhe += Utils.FitStringLength("070", 3, 3, ' ', 0, true, true, false); //cod numero banco 151 a 153
-                _detalhe += Utils.FitStringLength(boleto.Cedente.ContaBancaria.Agencia, 4, 4, ' ', ' ', true, true, false); //numero agencia cobradora 154 a 157
+                _detalhe += Utils.FitStringLength(boleto.Cedente.ContaBancaria.Agencia, 4, 4, '0', '0', true, true, false); //numero agencia cobradora 154 a 157
                 _detalhe += Utils.FitStringLength("Brasilia", 30, 30, ' ', 0, true, true, false); //praca cobranca 158 a 187
                 _detalhe += Utils.FitStringLength(boleto.DataVencimento.ToString("ddMMyyyy"), 8, 8, ' ', 0, true, true, false); //data vencimento titulo 188 a  195
                 _detalhe += Utils.FormatCode(boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", ""), 14); // 196 a 209 - valor do titulo
                 _detalhe += Utils.FitStringLength(boleto.NossoNumero, 12, 12, '0', 0, true, true, false); // 210 a 221 nossoNumero
                 _detalhe += Utils.FitStringLength(boleto.CodJurosMora == "2"? "51":"50", 2, 2, '0', 0, true, true, false); // 222 a 223 codigo tipo juros
+
+                //FormataNossoNumero
 
                 decimal juro = 0;
                 if(boleto.CodJurosMora == "2")
@@ -315,8 +321,8 @@ namespace BoletoNet
                 _detalhe += Utils.FitStringLength("03", 2, 2, '0', 0, true, true, false); // 276 a 277  codigo da 1 instrucao
                 _detalhe += Utils.FitStringLength("00", 2, 2, '0', 0, true, true, false); // 278 a 279  prazo da 1 instrucao
                 _detalhe += Utils.FitStringLength("94", 2, 2, '0', 0, true, true, false); // 280 a 281  codigo da 2 instrucao
-                _detalhe += Utils.FitStringLength("30", 2, 2, ' ', 0, true, true, false); // 282 a 283 prazo da 2 instrucao
-                _detalhe += Utils.FormatCode(boleto.ValorMulta.ToString("f").Replace(",", "").Replace(".", ""), 5); // 284 a 288 taxa ref
+                _detalhe += Utils.FitStringLength(boleto.NumeroDiasBaixa > 99?"99":boleto.NumeroDiasBaixa.ToString(), 2, 2, ' ', 0, true, true, false); // 282 a 283 prazo da 2 instrucao
+                _detalhe += Utils.FormatCode(String.Format("{0:0.00}", boleto.PercMulta).Replace(",", "").Replace(".", ""), 5); // 284 a 288 taxa ref
                 _detalhe += Utils.FitStringLength(boleto.Cedente.Nome, 40, 40, ' ', ' ', true, true, false); //289 a 328 emitente do titulo
                 _detalhe += Utils.FitStringLength("", 40, 40, ' ', ' ', true, true, false); // 329 a 369 observacoes
                 _detalhe += Utils.FitStringLength("", 32, 32, ' ', ' ', true, true, false); //369 a 400 branco
