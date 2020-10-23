@@ -202,7 +202,7 @@ namespace BoletoNet
             }
             else if ((Soma % 11) == 1)
             {
-                int d1 = Utils.ToInt32(Strings.Mid(value, value.Length, value.Length - 1));
+                int d1 = Utils.ToInt32(Strings.Mid(value, value.Length, 1));
 
                 d1 += 1;
 
@@ -294,7 +294,7 @@ namespace BoletoNet
                 _detalhe += Utils.FitStringLength("0", 1, 1, ' ', 0, true, true, false); //cod  cond pagamento 148 a 148
                 _detalhe += Utils.FitStringLength("02", 2, 2, ' ', 0, true, true, false); //cod da moeda 149 a 150
                 _detalhe += Utils.FitStringLength("070", 3, 3, ' ', 0, true, true, false); //cod numero banco 151 a 153
-                _detalhe += Utils.FitStringLength(boleto.Cedente.ContaBancaria.Agencia, 4, 4, '0', '0', true, true, false); //numero agencia cobradora 154 a 157
+                _detalhe += Utils.FormatCode(boleto.Cedente.ContaBancaria.Agencia, 4); //numero agencia cobradora 154 a 157
                 _detalhe += Utils.FitStringLength("Brasilia", 30, 30, ' ', 0, true, true, false); //praca cobranca 158 a 187
                 _detalhe += Utils.FitStringLength(boleto.DataVencimento.ToString("ddMMyyyy"), 8, 8, ' ', 0, true, true, false); //data vencimento titulo 188 a  195
                 _detalhe += Utils.FormatCode(boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", ""), 14); // 196 a 209 - valor do titulo
