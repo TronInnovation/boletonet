@@ -385,7 +385,7 @@ namespace BoletoNet
                 //Nosso Número
                 detalhe.NossoNumeroComDV = registro.Substring(70, 12);
                 detalhe.NossoNumero = registro.Substring(70, 11); //Sem o DV
-                detalhe.DACNossoNumero = registro.Substring(82, 1); //DV 
+                detalhe.DACNossoNumero = registro.Substring(81, 1); //DV 
                 //Seu Número
                 detalhe.SeuNumero = registro.Substring(92, 13);
 
