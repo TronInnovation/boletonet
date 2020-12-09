@@ -319,7 +319,7 @@ namespace BoletoNet
                 _detalhe += Utils.FitStringLength(boleto.DataDesconto.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, false); // 254 a 261 data limite desconto
                 _detalhe += Utils.FormatCode(boleto.ValorDesconto.ToString("f").Replace(",", "").Replace(".", ""), 14); // 262 a 275 valor do desconto
                 _detalhe += Utils.FitStringLength("03", 2, 2, '0', 0, true, true, false); // 276 a 277  codigo da 1 instrucao
-                _detalhe += Utils.FitStringLength("00", 2, 2, '0', 0, true, true, false); // 278 a 279  prazo da 1 instrucao
+                _detalhe += Utils.FitStringLength("01", 2, 2, '0', 0, true, true, false); // 278 a 279  prazo da 1 instrucao
                 _detalhe += Utils.FitStringLength("94", 2, 2, '0', 0, true, true, false); // 280 a 281  codigo da 2 instrucao
                 _detalhe += Utils.FitStringLength(boleto.NumeroDiasBaixa > 99?"99":boleto.NumeroDiasBaixa.ToString(), 2, 2, ' ', 0, true, true, false); // 282 a 283 prazo da 2 instrucao
                 _detalhe += Utils.FormatCode(String.Format("{0:0.00}", boleto.PercMulta).Replace(",", "").Replace(".", ""), 5); // 284 a 288 taxa ref
