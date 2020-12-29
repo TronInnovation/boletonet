@@ -312,8 +312,8 @@ namespace BoletoNet
                 {
                     juro = boleto.JurosMora;
                 }
-
-                _detalhe += Utils.FormatCode(juro.ToString("f").Replace(",", "").Replace(".", ""), 14); // 224 a 237 valor do juros
+                _detalhe += Utils.FitStringLength("00", 2, 2, '0', 0, true, true, false); // 224 a 225 prazo  do juros
+                _detalhe += Utils.FormatCode(juro.ToString("f").Replace(",", "").Replace(".", ""), 12); // 226 a 237 valor do juros
                 _detalhe += Utils.FormatCode(boleto.ValorAbatimento.ToString("f").Replace(",", "").Replace(".", ""), 14); // 238 a 251 valor abatimento
                 _detalhe += Utils.FitStringLength(boleto.ValorDesconto == 0 ? "00": boleto.CodigoDesconto.ToString(), 2, 2, '0', 0, true, true, false); ; // 252 a 253 codigo desconto
                 _detalhe += Utils.FitStringLength(boleto.DataDesconto.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, false); // 254 a 261 data limite desconto
