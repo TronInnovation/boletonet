@@ -274,7 +274,7 @@ namespace BoletoNet
             try
             {
                 ValidaBoleto(boleto);
-                
+
                 string _detalhe;
                 _detalhe = "01";// identificacao registro 1 a 2
                 _detalhe += Utils.FitStringLength(boleto.ContaBancaria.Agencia.ToString(), 3, 3, '0', 0, true, true, false); //agencia 3 a 5
@@ -299,12 +299,12 @@ namespace BoletoNet
                 _detalhe += Utils.FitStringLength(boleto.DataVencimento.ToString("ddMMyyyy"), 8, 8, ' ', 0, true, true, false); //data vencimento titulo 188 a  195
                 _detalhe += Utils.FormatCode(boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", ""), 14); // 196 a 209 - valor do titulo
                 _detalhe += Utils.FitStringLength(boleto.NossoNumero, 12, 12, '0', 0, true, true, false); // 210 a 221 nossoNumero
-                _detalhe += Utils.FitStringLength(boleto.CodJurosMora == "2"? "51":"50", 2, 2, '0', 0, true, true, false); // 222 a 223 codigo tipo juros
+                _detalhe += Utils.FitStringLength(boleto.CodJurosMora == "2" ? "51" : "50", 2, 2, '0', 0, true, true, false); // 222 a 223 codigo tipo juros
 
                 //FormataNossoNumero
 
                 decimal juro = 0;
-                if(boleto.CodJurosMora == "2")
+                if (boleto.CodJurosMora == "2")
                 {
                     juro = boleto.PercJurosMora * 30;
                 }
@@ -315,13 +315,13 @@ namespace BoletoNet
                 _detalhe += Utils.FitStringLength("00", 2, 2, '0', 0, true, true, false); // 224 a 225 prazo  do juros
                 _detalhe += Utils.FormatCode(juro.ToString("f").Replace(",", "").Replace(".", ""), 12); // 226 a 237 valor do juros
                 _detalhe += Utils.FormatCode(boleto.ValorAbatimento.ToString("f").Replace(",", "").Replace(".", ""), 14); // 238 a 251 valor abatimento
-                _detalhe += Utils.FitStringLength(boleto.ValorDesconto == 0 ? "00": boleto.CodigoDesconto.ToString(), 2, 2, '0', 0, true, true, false); ; // 252 a 253 codigo desconto
-                _detalhe += Utils.FitStringLength(boleto.DataDesconto.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, false); // 254 a 261 data limite desconto
+                _detalhe += Utils.FitStringLength(boleto.ValorDesconto == 0 ? "00" : boleto.CodigoDesconto.ToString(), 2, 2, '0', 0, true, true, false); ; // 252 a 253 codigo desconto
+                _detalhe += Utils.FitStringLength(boleto.ValorDesconto > 0 ? boleto.DataDesconto.ToString("ddMMyyyy") : "00000000", 8, 8, '0', 0, true, true, false); // 254 a 261 data limite desconto
                 _detalhe += Utils.FormatCode(boleto.ValorDesconto.ToString("f").Replace(",", "").Replace(".", ""), 14); // 262 a 275 valor do desconto
                 _detalhe += Utils.FitStringLength("03", 2, 2, '0', 0, true, true, false); // 276 a 277  codigo da 1 instrucao
-                _detalhe += Utils.FitStringLength("00", 2, 2, '0', 0, true, true, false); // 278 a 279  prazo da 1 instrucao
+                _detalhe += Utils.FitStringLength("30", 2, 2, '0', 0, true, true, false); // 278 a 279  prazo da 1 instrucao
                 _detalhe += Utils.FitStringLength("94", 2, 2, '0', 0, true, true, false); // 280 a 281  codigo da 2 instrucao
-                _detalhe += Utils.FitStringLength(boleto.NumeroDiasBaixa > 99?"99":boleto.NumeroDiasBaixa.ToString(), 2, 2, ' ', 0, true, true, false); // 282 a 283 prazo da 2 instrucao
+                _detalhe += Utils.FitStringLength(boleto.NumeroDiasBaixa > 99 ? "99" : boleto.NumeroDiasBaixa.ToString(), 2, 2, ' ', 0, true, true, false); // 282 a 283 prazo da 2 instrucao
                 _detalhe += Utils.FormatCode(String.Format("{0:0.00}", boleto.PercMulta).Replace(",", "").Replace(".", ""), 5); // 284 a 288 taxa ref
                 _detalhe += Utils.FitStringLength(boleto.Cedente.Nome, 40, 40, ' ', ' ', true, true, false); //289 a 328 emitente do titulo
                 _detalhe += Utils.FitStringLength("", 40, 40, ' ', ' ', true, true, false); // 329 a 369 observacoes
@@ -390,7 +390,7 @@ namespace BoletoNet
                 detalhe.SeuNumero = registro.Substring(92, 13);
 
                 //Instrução
-                detalhe.CodigoOcorrencia= Utils.ToInt32(registro.Substring(108, 2));
+                detalhe.CodigoOcorrencia = Utils.ToInt32(registro.Substring(108, 2));
 
                 //Número do documento
                 detalhe.NumeroDocumento = registro.Substring(128, 12);
@@ -473,7 +473,7 @@ namespace BoletoNet
             }
         }
 
-       
+
 
         /// <summary>
         /// Efetua as Validações dentro da classe Boleto, para garantir a geração da remessa
