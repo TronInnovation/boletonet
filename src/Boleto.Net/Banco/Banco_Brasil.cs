@@ -136,7 +136,9 @@ namespace BoletoNet
             //Carteira 17
             if (boleto.Carteira.Equals("17"))
             {
-                switch (boleto.Cedente.Convenio.ToString().Length)
+                var numeroConvenio = string.Format("{0}{1}", boleto.Cedente.Codigo, boleto.Cedente.DigitoCedente);
+
+                switch (numeroConvenio.Length)
                 {
                     //O BB manda como padrão 7 posições, mas é possível solicitar um convênio com 6 posições na carteira 17
                     case 6:
@@ -147,7 +149,7 @@ namespace BoletoNet
                     case 7:
                         if (boleto.NossoNumero.Length > 17)
                             throw new NotImplementedException(string.Format("Para a carteira {0}, a quantidade máxima são de 10 de posições para o nosso número", boleto.Carteira));
-                        boleto.NossoNumero = string.Format("{0}{1}", boleto.Cedente.Convenio, Utils.FormatCode(boleto.NossoNumero, 10));
+                        boleto.NossoNumero = string.Format("{0}{1}{2}", boleto.Cedente.Convenio, boleto.Cedente.DigitoCedente, Utils.FormatCode(boleto.NossoNumero, 10));
                         break;
                     default:
                         throw new NotImplementedException(string.Format("Para a carteira {0}, o número do convênio deve ter 6 ou 7 posições", boleto.Carteira));
@@ -658,7 +660,8 @@ namespace BoletoNet
             #region Carteira 17
             if (boleto.Carteira.Equals("17"))
             {
-                if (boleto.Cedente.Convenio.ToString().Length == 7)
+                var numeroConvenio = string.Format("{0}{1}", boleto.Cedente.Codigo, boleto.Cedente.DigitoCedente);
+                if (numeroConvenio.Length == 7)
                 {
                     boleto.CodigoBarra.Codigo = string.Format("{0}{1}{2}{3}{4}{5}{6}",
                         Utils.FormatCode(Codigo.ToString(), 3),
@@ -669,7 +672,7 @@ namespace BoletoNet
                         boleto.NossoNumero,
                         Utils.FormatCode(LimparCarteira(boleto.Carteira), 2));
                 }
-                else if (boleto.Cedente.Convenio.ToString().Length == 6)
+                else if (numeroConvenio.Length == 6)
                 {
                     boleto.CodigoBarra.Codigo = string.Format("{0}{1}{2}{3}{4}{5}{6}{7}",
                         Utils.FormatCode(Codigo.ToString(), 3),
@@ -1188,8 +1191,9 @@ namespace BoletoNet
             #endregion Carteira 31
 
             _dacBoleto = Mod11(boleto.CodigoBarra.Codigo, 9);
-
+            
             boleto.CodigoBarra.Codigo = Strings.Left(boleto.CodigoBarra.Codigo, 4) + _dacBoleto + Strings.Right(boleto.CodigoBarra.Codigo, 39);
+
         }
 
         public override void FormataLinhaDigitavel(Boleto boleto)
