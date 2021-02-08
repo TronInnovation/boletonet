@@ -72,9 +72,7 @@ namespace BoletoNet
                 if(banco.Codigo != 001)
                     numeroRegistro++;
 
-                if(ModoTeste)
-                    strline = strline.Remove(50, 2).Insert(50, "TS");
-
+              
                 incluiLinha.WriteLine(strline);
                 OnLinhaGerada(null, strline, EnumTipodeLinha.HeaderDeArquivo);
                 if (banco.Codigo == 104)//quando é caixa verifica o modelo de leiatue que é está em boletos.remssa.tipodocumento
@@ -84,8 +82,7 @@ namespace BoletoNet
 
                 if (strline != "")
                 {
-                    if (ModoTeste)
-                        strline = strline.Remove(51, 2).Insert(51, "TS");
+                
                     incluiLinha.WriteLine(strline);
                     OnLinhaGerada(null, strline, EnumTipodeLinha.HeaderDeLote);
                     if (banco.Codigo != 001)

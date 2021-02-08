@@ -2,6 +2,7 @@ using BoletoNet.EDI.Banco;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 
 [assembly: WebResource("BoletoNet.Imagens.104.jpg", "image/jpg")]
@@ -30,6 +31,22 @@ namespace BoletoNet
         private bool _desconto;
         private int _diasProtesto;
         private int _diasDevolucao;
+        private int diasProtesto = 30;
+
+
+        #region Properties
+
+        private int QtdRegistrosGeral { get; set; }
+
+        private int QtdRegistrosLote { get; set; }
+
+        private int QtdLotesGeral { get; set; }
+
+        private int QtdTitulosLote { get; set; }
+
+        private decimal ValorTotalTitulosLote { get; set; }
+
+        #endregion
 
         internal Banco_Caixa()
         {
@@ -484,7 +501,7 @@ namespace BoletoNet
                 {
 
                     case TipoArquivo.CNAB240:
-                        _header = GerarHeaderRemessaCNAB240(cedente);
+                        _header = GerarHeaderRemessaCNAB240(cedente,  numeroArquivoRemessa);
                         break;
                     case TipoArquivo.CNAB400:
                         _header = GerarHeaderRemessaCNAB400(0, cedente, numeroArquivoRemessa);
@@ -515,7 +532,7 @@ namespace BoletoNet
                         if (boletos.Remessa.TipoDocumento.Equals("2") || boletos.Remessa.TipoDocumento.Equals("1"))
                             _header = GerarHeaderRemessaCNAB240SIGCB(cedente);
                         else
-                            _header = GerarHeaderRemessaCNAB240(cedente);
+                            _header = GerarHeaderRemessaCNAB240(cedente,  numeroArquivoRemessa);
                         break;
                     case TipoArquivo.CNAB400:
                         _header = GerarHeaderRemessaCNAB400(0, cedente, numeroArquivoRemessa);
@@ -795,40 +812,42 @@ namespace BoletoNet
                 }
             }
         }
-        public string GerarHeaderRemessaCNAB240(Cedente cedente)
+        public string GerarHeaderRemessaCNAB240(Cedente cedente, int numeroArquivoRemessa)
         {
+            QtdRegistrosGeral = 1;
+            QtdLotesGeral = 0;
+
             try
             {
-                string header = Utils.FormatCode(Codigo.ToString(), "0", 3, true);                      // código do banco na compensação
-                header += "0000";                                                                       // Lote de Serviço 
-                header += "0";                                                                          // Tipo de Registro 
-                header += Utils.FormatCode("", " ", 9);                                                 // Uso Exclusivo FEBRABAN/CNAB
-                header += (cedente.CPFCNPJ.Length == 11 ? "1" : "2");                                   // Tipo de Inscrição 
-                header += Utils.FormatCode(cedente.CPFCNPJ, "0", 15);                                   // CPF/CNPJ do cedente 
-                header += Utils.FormatCode(cedente.Codigo + cedente.DigitoCedente, "0", 16);            // Código do Convênio no Banco 
-                header += Utils.FormatCode("", "0", 4);                                                 // Uso Exclusivo CAIXA
-                header += Utils.FormatCode(cedente.ContaBancaria.Agencia, "0", 5);                      // Agência Mantenedora da Conta 
-                header += Utils.FormatCode(cedente.ContaBancaria.DigitoAgencia, "0", 5);                // Dígito Verificador da Agência 
-                header += Utils.FormatCode(cedente.ContaBancaria.Conta, "0", 12);                       // Código do Cedente (sem operação)  
-                header += cedente.ContaBancaria.DigitoConta;                                            // Díg. Verif. Cedente (sem operação) 
-                header += Mod11(cedente.ContaBancaria.Agencia + cedente.ContaBancaria.Conta).ToString();// Dígito Verif. Ag./Ced  (sem operação)
-                header += Utils.FormatCode(cedente.Nome, " ", 30);                                      // Nome do cedente
-                header += Utils.FormatCode("CAIXA ECONOMICA FEDERAL", " ", 30);                         // Nome do Banco
-                header += Utils.FormatCode("", " ", 10);                                                // Uso Exclusivo FEBRABAN/CNAB
-                header += "1";                                                                          // Código 1 - Remessa / 2 - Retorno 
-                header += DateTime.Now.ToString("ddMMyyyy");                                            // Data de Geração do Arquivo
-                header += string.Format("{0:hh:mm:ss}", DateTime.Now).Replace(":", "");                  // Hora de Geração do Arquivo
-                header += "000001";                                                                     // Número Seqüencial do Arquivo 
-                header += "030";                                                                        // Número da Versão do Layout do Arquivo 
-                header += "0";                                                                          // Densidade de Gravação do Arquivo 
-                header += Utils.FormatCode("", " ", 20);                                                // Para Uso Reservado do Banco
-                // Na fase de teste deve conter "remessa-produção", após aprovado deve conter espaços em branco
-                header += Utils.FormatCode("remessa-produção", " ", 20);                                // Para Uso Reservado da Empresa  
-                //header += Utils.FormatCode("", " ", 20);                                              // Para Uso Reservado da Empresa
-                header += Utils.FormatCode("", " ", 29);                                                // Uso Exclusivo FEBRABAN/CNAB
+                var detalhe = new StringBuilder();
 
-                return header;
+                detalhe.Append("104");//001 a 003                      
+                detalhe.Append("0000");//004 a 007                                                                       
+                detalhe.Append("0");//008 a 008                                                                          
+                detalhe.Append(Utils.FormatCode("", " ", 9));//009 a 017                                                 
+                detalhe.Append((cedente.CPFCNPJ.Length == 11 ? "1" : "2"));//018 a 018                                   
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(cedente.CPFCNPJ), 14, 14, '0', 0, true, true, true));//019 a 032           
+                detalhe.Append(Utils.FormatCode("0", "0", 20));//033 a 052
+                detalhe.Append(Utils.FitStringLength(cedente.ContaBancaria.Agencia, 5, 5, '0', 0, true, true, true));//053 a 057
+                detalhe.Append(Utils.FitStringLength(cedente.ContaBancaria.DigitoAgencia, 1, 1, '0', 0, true, true, true));//058 a 058
+                detalhe.Append(Utils.FitStringLength(cedente.Convenio.ToString(), 6, 6, '0', 0, true, true, true));//059 a 064
+                detalhe.Append(Utils.FormatCode("", "0", 7));//065 a 071                                       
+                detalhe.Append(Utils.FormatCode("", "0", 1));//072 a 072   
+                detalhe.Append(Utils.FitStringLength(cedente.Nome, 30, 30, ' ', 0, true, true, false));//073 a 102                            
+                detalhe.Append(Utils.FormatCode("CAIXA ECONOMICA FEDERAL", " ", 30));//103 a 132                        
+                detalhe.Append(Utils.FormatCode("", " ", 10));//133 a 142                                      
+                detalhe.Append("1");//143 a 143                                                                
+                detalhe.Append(DateTime.Now.ToString("ddMMyyyy"));//144 a 151                                  
+                detalhe.Append(Utils.FormatCode(string.Format("{0:hh:mm:ss}", DateTime.Now).Replace(":", ""), "0", 6));//152 a 157                 
+                detalhe.Append(Utils.FormatCode(numeroArquivoRemessa.ToString(), "0", 6, true));//158 a 163                                                               
+                detalhe.Append("101");//164 a 166                                                                   
+                detalhe.Append("00000");//167 a 171                                                                
+                detalhe.Append(Utils.FormatCode("", " ", 20));//172 a 191                                          
+                detalhe.Append(Utils.FormatCode("REMESSA-PRODUCAO", " ", 20));//192 a 211                            
+                detalhe.Append(Utils.FormatCode("", " ", 4));//212 a 215                                           
+                detalhe.Append(Utils.FormatCode("", " ", 25));//216 a 240                                          
 
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
             }
             catch (Exception ex)
             {
@@ -837,34 +856,42 @@ namespace BoletoNet
         }
         private string GerarHeaderLoteRemessaCNAB240(Cedente cedente, int numeroArquivoRemessa)
         {
+            QtdLotesGeral ++;
+            QtdRegistrosGeral++;
+            QtdRegistrosLote = 0;
+            QtdTitulosLote = 0;
+            ValorTotalTitulosLote = 0;
+
             try
             {
-                string header = Utils.FormatCode(Codigo.ToString(), "0", 3, true);                      // código do banco na compensação
-                header += "0001";                                                                       // Lote de Serviço
-                header += "1";                                                                          // Tipo de Registro 
-                header += "R";                                                                          // Tipo de Operação 
-                header += "01";                                                                         // Tipo de Serviço '01' = Cobrança, '03' = Bloqueto Eletrônico 
-                header += "  ";                                                                         // Uso Exclusivo FEBRABAN/CNAB
-                header += "020";                                                                        // Número da Versão do Layout do Arquivo 
-                header += " ";                                                                          // Uso Exclusivo FEBRABAN/CNAB
-                header += (cedente.CPFCNPJ.Length == 11 ? "1" : "2");                                   // Tipo de Inscrição 
-                header += Utils.FormatCode(cedente.CPFCNPJ, "0", 15);                                   // CPF/CNPJ do cedente
-                header += Utils.FormatCode(cedente.Codigo + cedente.DigitoCedente, "0", 16);            // Código do Convênio no Banco 
-                header += Utils.FormatCode("", " ", 4);                                                 // Uso Exclusivo CAIXA
-                header += Utils.FormatCode(cedente.ContaBancaria.Agencia, "0", 5);                      // Agência Mantenedora da Conta 
-                header += Utils.FormatCode(cedente.ContaBancaria.DigitoAgencia, "0", 5);                // Dígito Verificador da Agência 
-                header += Utils.FormatCode(cedente.ContaBancaria.Conta, "0", 12);                       // Número da Conta Corrente 
-                header += cedente.ContaBancaria.DigitoConta;                                            // Digito Verificador da Conta Corrente 
-                header += Mod11(cedente.ContaBancaria.Agencia + cedente.ContaBancaria.Conta).ToString();// Dígito Verif. Ag./Ced  (sem operação)
-                header += Utils.FormatCode(cedente.Nome, " ", 30);                                      // Nome do cedente
-                header += Utils.FormatCode("", " ", 40);                                                // Mensagem 1
-                header += Utils.FormatCode("", " ", 40);                                                // Mensagem 2
-                header += numeroArquivoRemessa.ToString("00000000");                                    // Número Remessa/Retorno
-                header += DateTime.Now.ToString("ddMMyyyy");                                            // Data de Gravação Remessa/Retorno 
-                header += Utils.FormatCode("", "0", 8);                                                 // Data do Crédito 
-                header += Utils.FormatCode("", " ", 33);                                                // Uso Exclusivo FEBRABAN/CNAB
+                var detalhe = new StringBuilder();
 
-                return header;
+                detalhe.Append("104");/*001 a 003*/
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(QtdLotesGeral), 4, 4, '0', 0, true, true, true));/*004 a 007*/
+                detalhe.Append("1");/*008 a 008*/
+                detalhe.Append("R");/*009 a 009*/
+                detalhe.Append("01");/*010 a 011*/
+                detalhe.Append(Utils.FitStringLength("0", 2, 2, '0', 0, true, true, true));/*012 a 013*/
+                detalhe.Append("060");/*014 a 016*/
+                detalhe.Append(" ");/*017 a 017*/
+                detalhe.Append(Utils.FitStringLength(cedente.CPFCNPJ.Length == 14 ? "2" : "1", 1, 1, '0', 0, true, true, true));/*018 a 018*/
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(cedente.CPFCNPJ), 15, 15, '0', 0, true, true, true));/*019 a 033*/
+                detalhe.Append(Utils.FitStringLength(cedente.Convenio.ToString(), 6, 6, '0', 0, true, true, true));/*034 a 039*/
+                detalhe.Append(Utils.FormatCode("0", "0", 14));/*040 a 053*/
+                detalhe.Append(Utils.FitStringLength(cedente.ContaBancaria.Agencia, 5, 5, '0', 0, true, true, true));/*054 a 058*/
+                detalhe.Append(Utils.FitStringLength(cedente.ContaBancaria.DigitoAgencia, 1, 1, '0', 0, true, true, true));/*059 a 059*/
+                detalhe.Append(Utils.FitStringLength(cedente.Convenio.ToString(), 6, 6, '0', 0, true, true, true));/*060 a 065*/
+                detalhe.Append(Utils.FormatCode("0", "0", 7));/*066 a 072*/
+                detalhe.Append(Utils.FormatCode("0", "0", 1));/*073 a 073*/
+                detalhe.Append(Utils.FitStringLength(cedente.Nome, 30, 30, ' ', 0, true, true, false));/*074 a 103*/
+                detalhe.Append(Utils.FormatCode("", " ", 40));/*104 a 143*/
+                detalhe.Append(Utils.FormatCode("", " ", 40));/*144 a 183*/
+                detalhe.Append(Utils.FormatCode(numeroArquivoRemessa.ToString(), "0", 8, true));/*184 a 191*/
+                detalhe.Append(DateTime.Now.ToString("ddMMyyyy"));/*192 a 199*/
+                detalhe.Append(Utils.FormatCode("0", "0", 8));/*200 a 207*/
+                detalhe.Append(Utils.FormatCode(" ", " ", 33));/*208 a 240*/
+
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
             }
             catch (Exception e)
             {
@@ -873,62 +900,83 @@ namespace BoletoNet
         }
         public string GerarDetalheSegmentoPRemessaCNAB240(Boleto boleto, int numeroRegistro, string numeroConvenio, Cedente cedente)
         {
+            QtdRegistrosGeral++;
+            QtdTitulosLote++;
+            ValorTotalTitulosLote = ValorTotalTitulosLote + boleto.ValorBoleto;
+
             try
             {
-                validaInstrucoes240(boleto); // Para protestar, devolver ou desconto.
+                var nConvenio = int.Parse(numeroConvenio);
 
-                string header = Utils.FormatCode(Codigo.ToString(), "0", 3, true);                      // código do banco na compensação
-                header += "0001";                                                                       // Lote de Serviço
-                header += "3";                                                                          // Tipo de Registro 
-                header += Utils.FormatCode(numeroRegistro.ToString(), "0", 5);                          // Nº Sequencial do Registro no Lote 
-                header += "P";                                                                          // Cód. Segmento do Registro Detalhe
-                header += " ";                                                                          // Uso Exclusivo FEBRABAN/CNAB
-                header += "01";                                                                         // Código de Movimento Remessa 
-                header += Utils.FormatCode(cedente.ContaBancaria.Agencia, "0", 5);                      // Agência Mantenedora da Conta 
-                header += cedente.ContaBancaria.DigitoAgencia;                                          // Dígito Verificador da Agência 
-                header += Utils.FormatCode(cedente.ContaBancaria.Conta, "0", 12);                       // Número da Conta Corrente 
-                header += cedente.ContaBancaria.DigitoConta;                                            // Digito Verificador da Conta Corrente 
-                header += Mod11(cedente.ContaBancaria.Agencia + cedente.ContaBancaria.Conta).ToString(); // Dígito Verif. Ag./Ced  (sem operação)
-                header += Utils.FormatCode("", "0", 9);                                                 // Uso Exclusivo CAIXA
-                header += Utils.FormatCode(boleto.NossoNumero, "0", 11);                                // Identificação do Título no Banco 
-                header += "01";                                                                         // Código da Carteira 
-                header += (boleto.Carteira == "14" ? "2" : "1");                                        // Forma de Cadastr. do Título no Banco 
-                // '1' = Com Cadastramento (Cobrança Registrada) 
-                // '2' = Sem Cadastramento (Cobrança sem Registro) 
-                header += "2";                                                                          // Tipo de Documento 
-                header += "2";                                                                          // Identificação da Emissão do Bloqueto 
-                header += "2";                                                                          // Identificação da Distribuição
-                header += Utils.FormatCode(boleto.NumeroDocumento, "0", 11);                            // Número do Documento de Cobrança 
-                header += "    ";                                                                       // Uso Exclusivo CAIXA
-                header += boleto.DataVencimento.ToString("ddMMyyyy");                                   // Data de Vencimento do Título
-                header += Utils.FormatCode(boleto.ValorBoleto.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 13); // Valor Nominal do Título 13
-                header += Utils.FormatCode(cedente.ContaBancaria.Agencia, "0", 5);                      // Agência Encarregada da Cobrança 
-                header += cedente.ContaBancaria.DigitoAgencia;                                          // Dígito Verificador da Agência 
-                header += boleto.EspecieDocumento.Codigo;                                // Espécie do Título 
-                header += boleto.Aceite;                                                                // Identific. de Título Aceito/Não Aceito
-                // Data da Emissão do Título 
-                header += (boleto.DataProcessamento.ToString("ddMMyyyy") == "01010001" ? DateTime.Now.ToString("ddMMyyyy") : boleto.DataProcessamento.ToString("ddMMyyyy"));
-                header += "1";                                                                          // Código do Juros de Mora '1' = Valor por Dia - '2' = Taxa Mensal 
-                header += (boleto.DataMulta.ToString("ddMMyyyy") == "01010001" ? "00000000" : boleto.DataMulta.ToString("ddMMyyyy")); // Data do Juros de Mora 
+                var valorJuros = 0.00m;
 
-                header += Utils.FormatCode(boleto.ValorMulta.ToString().Replace(",", "").Replace(".", ""), "0", 13); // Juros de Mora por Dia/Taxa 
+                var detalhe = new StringBuilder();
 
-                header += (boleto.ValorDesconto > 0 ? "1" : "0"); // Código do Desconto 
-                header += (boleto.DataDesconto.ToString("ddMMyyyy") == "01010001" ? "00000000" : boleto.DataDesconto.ToString("ddMMyyyy")); // Data do Desconto
-                header += Utils.FormatCode(boleto.ValorDesconto.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 13); // Valor/Percentual a ser Concedido 
-                header += Utils.FormatCode(boleto.IOF.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 13); // Valor do IOF a ser Recolhido 
-                header += Utils.FormatCode(boleto.Abatimento.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 13); // Valor do Abatimento 
+                detalhe.Append("104");//001 a 003     
+                detalhe.Append("0001");//004 a 007
+                detalhe.Append("3");//008 a 008
+                detalhe.Append(Utils.FitStringLength(Convert.ToString(numeroRegistro), 5, 5, '0', 0, true, true, true));//009 a 013                          
+                detalhe.Append("P");//014 a 014                                                                          
+                detalhe.Append(" ");//015 a 015                                                                          
+                detalhe.Append("01");//016 a 017                                                                         
+                detalhe.Append(Utils.FitStringLength(cedente.ContaBancaria.Agencia, 5, 5, '0', 0, true, true, true));//018 a 022
+                detalhe.Append(Utils.FitStringLength(cedente.ContaBancaria.DigitoAgencia, 1, 1, '0', 0, true, true, true));//023 a 023                                          
+                detalhe.Append(Utils.FitStringLength(numeroConvenio ?? "0", 6, 6, '0', 0, true, true, true));//024 a 029                       
+                detalhe.Append(Utils.FormatCode("", "0", 8));//030 a 037
+                detalhe.Append(Utils.FormatCode("", "0", 2)); ;//038 a 039
 
-                header += Utils.FormatCode("", " ", 25);                                                // Identificação do Título na Empresa
-                header += (boleto.ProtestaTitulos == true ? "1" : "3");                                                      // Código para Protesto
-                header += Utils.FormatCode(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "00", "0", 2);// Número de Dias para Protesto 2 posi
-                header += (_baixaDevolver ? "1" : "2");                                                  // Código para Baixa/Devolução 1 posi
-                header += _diasDevolucao.ToString("00");                                                 // Número de Dias para Baixa/Devolução 3 posi
-                header += boleto.Moeda.ToString("00");                                                  // Código da Moeda 
-                header += Utils.FormatCode("", " ", 10);                                                // Uso Exclusivo FEBRABAN/CNAB 
-                header += Utils.FormatCode("", " ", 1);                                                 // Uso Exclusivo FEBRABAN/CNAB 
+                if (nConvenio >= 1 && nConvenio <= 60000 && boleto.NossoNumero.Length > 17)
+                {
+                    detalhe.Append("0"); //040 a 040 
+                    detalhe.Append(Utils.FitStringLength(cedente.VariacaoCarteira ?? "0", 2, 2, '0', 0, true, true, true));//041 a 042
+                    detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 15, 15, '0', 0, true, true, true));//043 a 057
+                }
+                else
+                {
+                    detalhe.Append(Utils.FitStringLength("0", 1, 1, '0', 0, true, true, true));//040 a 040 
+                    detalhe.Append(Utils.FitStringLength("14", 2, 2, '0', 0, true, true, true));//041 a 042
+                    detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 15, 15, '0', 0, true, true, true));//043 a 057
+                }
 
-                return header;
+                detalhe.Append(Utils.FitStringLength("1", 1, 1, '0', 0, true, true, true));//058 a 058   
+                detalhe.Append("1");//059 a 059                                                      
+                detalhe.Append("2");//060 a 060
+                detalhe.Append("2");//061 a 061
+                detalhe.Append("0");//062 a 062
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.NumeroDocumento), 11, 11, '0', 0, true, true, true));//063 a 073                            
+                detalhe.Append(Utils.FormatCode("", " ", 4));//074 a 077
+                detalhe.Append(boleto.DataVencimento.ToString("ddMMyyyy"));//078 a 085                                   
+                detalhe.Append(Utils.FitStringLength(boleto.ValorBoleto.ToString("0.00").Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//086 a 100 
+                detalhe.Append(Utils.FormatCode("", "0", 5));//101 a 105                      
+                detalhe.Append("0");//106 a 106                                          
+                detalhe.Append(Utils.FitStringLength(boleto.EspecieDocumento.Codigo.ToString(), 2, 2, '0', 0, true, true, true));//107 a 108                                
+                detalhe.Append("N");//109 a 109                                                                
+                detalhe.Append((boleto.DataProcessamento.ToString("ddMMyyyy") == "01010001" ? DateTime.Now.ToString("ddMMyyyy") : boleto.DataProcessamento.ToString("ddMMyyyy")));//110 a 117
+                detalhe.Append("1");//118 a 118                                                                          
+                detalhe.Append(boleto.DataVencimento.AddDays(1).ToString("ddMMyyyy"));//119 a 126 
+
+                if (boleto.CodigoJuro == 1)
+                    valorJuros = (decimal)(boleto.ValorJurosMora / 30);
+                else
+                    valorJuros = (decimal)(boleto.PercJuros);
+
+                detalhe.Append(Utils.FitStringLength(valorJuros.ToString("0.00").Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//127 a 141 
+                detalhe.Append(Utils.FormatCode(((boleto.CodigoDesconto == null || boleto.CodigoDesconto == "") ? "1" : boleto.CodigoDesconto), "0", 1));//142 a 142
+                detalhe.Append((boleto.DataDesconto.ToString("ddMMyyyy") == "01010001" ? "00000000" : boleto.DataDesconto.ToString("ddMMyyyy")));//143 a 150 
+                detalhe.Append(Utils.FitStringLength(boleto.ValorDesconto.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//151 a 165 
+                detalhe.Append(Utils.FitStringLength(boleto.IOF.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//166 a 180 
+                detalhe.Append(Utils.FitStringLength(boleto.ValorAbatimento.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//188 a 195
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.NumeroDocumento), 25, 25, '0', 0, true, true, true));//196 a 220                                                
+                detalhe.Append(boleto.ProtestaTitulos == true ? "1" : "3");//221 a 221                                                      
+                detalhe.Append(diasProtesto.ToString("00")) ;//222 a 223                                                  
+                detalhe.Append("1");//224 a 225                                                 
+                detalhe.Append(_diasDevolucao.ToString("000"));//225 a 227                                                 
+                detalhe.Append(boleto.Moeda.ToString("00"));//228 a 229                                                   
+                detalhe.Append(Utils.FormatCode("", "0", 10));//230 a 239                                                
+                detalhe.Append(Utils.FormatCode("", " ", 1));//240 a 240
+
+                //Retorno
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
             }
             catch (Exception e)
             {
@@ -937,31 +985,37 @@ namespace BoletoNet
         }
         public string GerarDetalheSegmentoQRemessaCNAB240(Boleto boleto, int numeroRegistro, TipoArquivo tipoArquivo)
         {
+
+            QtdRegistrosGeral++;
+            QtdRegistrosLote++;
+
+            var detalhe = new StringBuilder();
+
             try
             {
-                string header = Utils.FormatCode(Codigo.ToString(), "0", 3, true);                      // código do banco na compensação
-                header += "0001";                                                                       // Lote de Serviço
-                header += "3";                                                                          // Tipo de Registro 
-                header += Utils.FormatCode(numeroRegistro.ToString(), "0", 5);                          // Nº Sequencial do Registro no Lote 
-                header += "Q";                                                                          // Cód. Segmento do Registro Detalhe
-                header += " ";                                                                          // Uso Exclusivo FEBRABAN/CNAB
-                header += "01";                                                                         // Código de Movimento Remessa
-                header += (boleto.Sacado.CPFCNPJ.Length == 11 ? "1" : "2");                             // Tipo de Inscrição 
-                header += Utils.FormatCode(boleto.Sacado.CPFCNPJ, "0", 15);                             // Número de Inscrição 
-                header += Utils.FormatCode(boleto.Sacado.Nome, " ", 40);                                // Nome
-                header += Utils.FormatCode(boleto.Sacado.Endereco.End, " ", 40);                        // Endereço
-                header += Utils.FormatCode(boleto.Sacado.Endereco.Bairro, " ", 15);                     // Bairro 
-                header += boleto.Sacado.Endereco.CEP;                                                   // CEP + Sufixo do CEP
-                header += Utils.FormatCode(boleto.Sacado.Endereco.Cidade, " ", 15);                     // Cidade 
-                header += boleto.Sacado.Endereco.UF;                                                    // Unidade da Federação
-                // Estes campos deverão estar preenchidos quando não for o Cedente original do título.
-                header += "0";                                                                          // Tipo de Inscrição 
-                header += Utils.FormatCode("", "0", 15);                                                // Número de Inscrição CPF/CNPJ
-                header += Utils.FormatCode("", " ", 40);                                                // Nome do Sacador/Avalista 
-                //*********
-                header += Utils.FormatCode("", " ", 31);                                                // Uso Exclusivo FEBRABAN/CNAB
+                detalhe.Append("104");//001 a 003                                                      
+                detalhe.Append("0001");//004 a 007                 
+                detalhe.Append("3");//008 a 008                                                                                                    
+                detalhe.Append(Utils.FitStringLength(numeroRegistro.ToString(), 5, 5, '0', 0, true, true, true));//009 a 013                                                  
+                detalhe.Append("Q");//014 a 014                                                                                                    
+                detalhe.Append(" ");//015 a 015                                                                                                    
+                detalhe.Append("01");//016 a 017                                                                                                   
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.TipoDeInscricao == "CNPJ" ? "2" : "1", 1, 1, '0', 0, true, true, true));//018 a 018                                                       
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Sacado.CPFCNPJ), 15, 15, '0', 0, true, true, true));//019 a 033                                                       
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Nome, 40, 40, ' ', 0, true, true, false));//034 a 073                                                          
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.End, 40, 40, ' ', 0, true, true, false));//074 a 113                                                  
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.Bairro, 15, 15, ' ', 0, true, true, false));//114 a 128                                               
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.CEP != null ? boleto.Sacado.Endereco.CEP.Replace("-", "").Replace(".", "").Replace("/", "") : "", 8, 8, '0', 0, true, true, true)); //Posição 129 a 136
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Endereco.Cidade, 15, 15, ' ', 0, true, true, false));//137 a 151                                                
+                detalhe.Append(Utils.FormatCode(boleto.Sacado.Endereco.UF, " ", 2));//152 a 153                                                                             
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.TipoDeInscricao == "CNPJ" ? "2" : "1", 1, 1, '0', 0, true, true, false));//154 a 154
+                detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.Sacado.CPFCNPJ), 15, 15, '0', 0, true, true, true));//155 a 169
+                detalhe.Append(Utils.FitStringLength(boleto.Sacado.Nome, 40, 40, ' ', 0, true, true, false));//170 a 209
+                detalhe.Append("000");//210 a 212
+                detalhe.Append(Utils.FitStringLength(" ", 20, 20, ' ', 0, true, true, true));//213 a 232
+                detalhe.Append(new string(' ', 8));//233 a 240                                                                        
 
-                return header;
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
             }
             catch (Exception e)
             {
@@ -970,51 +1024,36 @@ namespace BoletoNet
         }
         public string GerarDetalheSegmentoRRemessaCNAB240(Boleto boleto, int numeroRegistroDetalhe, TipoArquivo CNAB240)
         {
+            QtdRegistrosGeral++;
+            QtdRegistrosLote++;
+
+            var detalhe = new StringBuilder();
+
             try
             {
-                string header = Utils.FormatCode(Codigo.ToString(), "0", 3, true);                      // código do banco na compensação
-                header += "0001";                                                                       // Lote de Serviço
-                header += "3";                                                                          // Tipo de Registro 
-                header += Utils.FormatCode(numeroRegistroDetalhe.ToString(), "0", 5);                   // Nº Sequencial do Registro no Lote 
-                header += "R";                                                                          // Cód. Segmento do Registro Detalhe
-                header += " ";                                                                          // Uso Exclusivo FEBRABAN/CNAB
-                header += "01";                                                                         // Código de Movimento Remessa
+                detalhe.Append("104");//001 a 003                               
+                detalhe.Append("0001");//004 a 007                                                                       // Lote de Serviço
+                detalhe.Append("3");//008 a 008                                                                          
+                detalhe.Append(Utils.FitStringLength(numeroRegistroDetalhe.ToString(), 5, 5, '0', 0, true, true, true));//009 a 013                    
+                detalhe.Append("R");//014 a 014                                                                          
+                detalhe.Append(" ");//015 a 015                                                                          
+                detalhe.Append("01");//016 a 017 
+                detalhe.Append(Utils.FitStringLength(boleto.CodigoDesconto ?? "0", 1, 1, '0', 0, true, true, true));//018 a 018 
+                detalhe.Append(Utils.FormatCode(boleto.CodigoDesconto == null || boleto.CodigoDesconto == "0" ? "0" : boleto.DataDesconto2.ToString("ddMMyyyy"), "0", 8));//019 a 026 
+                detalhe.Append(Utils.FormatCode(boleto.ValorDesconto.ToString().Replace(",", "").Replace(".", ""), "0", 15));//027 a 041 
+                detalhe.Append(Utils.FormatCode("0", "0", 1));//042 a 042
+                detalhe.Append(Utils.FormatCode("", "0", 8));//043 a 050
+                detalhe.Append(Utils.FormatCode("", "0", 15));//051 a 065
+                detalhe.Append(Utils.FitStringLength(boleto.CodigoMulta.ToString(), 1, 1, '0', 0, true, true, true));//066 a 066
+                detalhe.Append(Utils.FormatCode(boleto.DataMulta.ToString("ddMMyyyy") == "01010001" ? "0" : boleto.DataMulta.ToString("ddMMyyyy"), "0", 8));//067 a 074
+                detalhe.Append(Utils.FormatCode(boleto.CodigoMulta == 0 ? "0" : (boleto.CodigoMulta == 1 ? boleto.ValorMulta.ToString().Replace(",", "").Replace(".", "") : boleto.PercMulta.ToString().Replace(",", "").Replace(".", "")), "0", 15, true));//075 a 089 
+                detalhe.Append(Utils.FormatCode("", " ", 10));//090 a 099                                                
+                detalhe.Append(Utils.FormatCode("", " ", 40));//100 a 139                                                
+                detalhe.Append(Utils.FormatCode("", " ", 40));//140 a 179                                                
+                detalhe.Append(Utils.FormatCode("", " ", 50));//180 a 229
+                detalhe.Append(Utils.FormatCode("", " ", 11));//230 a 240                                                
 
-                //Suelton - 14/12/2018 - Implementação do 2 desconto por antecipação
-                if (boleto.DataDescontoAntecipacao2.HasValue && boleto.ValorDescontoAntecipacao2.HasValue)
-                {
-                    header += "1" + //'1' = Valor Fixo Até a Data Informada
-                        Utils.FitStringLength(boleto.DataDescontoAntecipacao2.Value.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, false) +
-                        Utils.FormatCode(boleto.ValorDescontoAntecipacao2.Value.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 15);
-                }
-                else
-                {
-                    // Desconto 2
-                    header += "000000000000000000000000"; //24 zeros
-                }
-
-                //Suelton - 14/12/2018 - Implementação do 3 desconto por antecipação
-                if (boleto.DataDescontoAntecipacao3.HasValue && boleto.ValorDescontoAntecipacao3.HasValue)
-                {
-                    header += "1" + //'1' = Valor Fixo Até a Data Informada
-                        Utils.FitStringLength(boleto.DataDescontoAntecipacao3.Value.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, false) +
-                        Utils.FormatCode(boleto.ValorDescontoAntecipacao3.Value.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 15);
-                }
-                else
-                {
-                    // Desconto 3
-                    header += "000000000000000000000000"; //24 zeros
-                }
-
-                header += "1";                                          // Código da Multa '1' = Valor Fixo,'2' = Percentual,'0' = Sem Multa 
-                header += boleto.DataMulta.ToString("ddMMyyyy");                                        // Data da Multa 
-                header += Utils.FormatCode(boleto.ValorMulta.ToString(CultureInfo.InvariantCulture).Replace(",", "").Replace(".", ""), "0", 13); // Valor/Percentual a Ser Aplicado
-                header += Utils.FormatCode("", " ", 10);                                                // Informação ao Sacado
-                header += Utils.FormatCode("", " ", 40);                                                // Mensagem 3
-                header += Utils.FormatCode("", " ", 40);                                                // Mensagem 4
-                header += Utils.FormatCode("", " ", 61);                                                // Uso Exclusivo FEBRABAN/CNAB 
-
-                return header;
+                return Utils.SubstituiCaracteresEspeciais(detalhe.ToString());
             }
             catch (Exception e)
             {
@@ -1023,33 +1062,35 @@ namespace BoletoNet
         }
         public string GerarTrailerLoteRemessaCNAB240(int numeroRegistro)
         {
+            var trailer = new StringBuilder();
+
+            QtdRegistrosGeral++;
+
             try
             {
-                string header = Utils.FormatCode(Codigo.ToString(), "0", 3, true);                      // código do banco na compensação
-                header += "0001";                                                                       // Lote de Serviço
-                header += "5";                                                                          // Tipo de Registro 
-                header += Utils.FormatCode("", " ", 61);                                                // Uso Exclusivo FEBRABAN/CNAB
-                header += Utils.FormatCode(numeroRegistro.ToString(), "0", 5);                          // Nº Sequencial do Registro no Lote 
+                trailer.Append("104");//001 a 003                     
+                trailer.Append(Utils.FitStringLength(QtdLotesGeral.ToString(), 4, 4, '0', 0, true, true, true));//004 a 007              
+                trailer.Append("5");//008 a 008                                                                   
+                trailer.Append(Utils.FormatCode("", " ", 9));//009 a 017                                          
+                trailer.Append(Utils.FitStringLength(numeroRegistro.ToString(), 6, 6, '0', 0, true, true, true));//018 a 023                   
 
                 // Totalização da Cobrança Simples
-                header += Utils.FormatCode("", "0", 6);                                                 // Quantidade de Títulos em Cobrança
-                header += Utils.FormatCode("", "0", 15);                                                // Valor Total dos Títulos em Carteiras
-
-                header += Utils.FormatCode("", "0", 6);                                                 // Uso Exclusivo FEBRABAN/CNAB
-                header += Utils.FormatCode("", "0", 15);                                                // Uso Exclusivo FEBRABAN/CNAB 
+                trailer.Append(Utils.FitStringLength(QtdTitulosLote.ToString(), 6, 6, '0', 0, true, true, true));//024 a 029                   
+                trailer.Append(Utils.FitStringLength(ValorTotalTitulosLote.ToString("0.00").Replace(",", ""), 17, 17, '0', 0, true, true, true));//030 a 046                                               
 
                 // Totalização da Cobrança Caucionada
-                header += Utils.FormatCode("", "0", 6);                                                 // Quantidade de Títulos em Cobrança
-                header += Utils.FormatCode("", "0", 15);                                                // Valor Total dos Títulos em Carteiras
+                trailer.Append(Utils.FormatCode("", "0", 6));//047 a 052                                              
+                trailer.Append(Utils.FormatCode("", "0", 17));//053 a 069                                             
 
                 // Totalização da Cobrança Descontada
-                header += Utils.FormatCode("", "0", 6);                                                 // Quantidade de Títulos em Cobrança
-                header += Utils.FormatCode("", "0", 15);                                                // Valor Total dos Títulos em Carteiras
+                trailer.Append(Utils.FormatCode("", "0", 6));//070 a 075                                              
+                trailer.Append(Utils.FormatCode("", "0", 17));//076 a 092                                             
 
-                header += Utils.FormatCode("", " ", 8);                                                 // Uso Exclusivo FEBRABAN/CNAB
-                header += Utils.FormatCode("", " ", 117);                                               // Uso Exclusivo FEBRABAN/CNAB
+                // Uso Exclusivo FEBRABAN/CNAB
+                trailer.Append(Utils.FormatCode("", " ", 31));//093 a 123                                             
+                trailer.Append(Utils.FormatCode("", " ", 117));//124 a 240                                            
 
-                return header;
+                return Utils.SubstituiCaracteresEspeciais(trailer.ToString()); ;
             }
             catch (Exception e)
             {
@@ -1058,18 +1099,23 @@ namespace BoletoNet
         }
         public string GerarTrailerArquivoRemessaCNAB240(int numeroRegistro)
         {
+            QtdRegistrosGeral++;
+
+
+            var trailler = new StringBuilder();
+
             try
             {
-                string header = Utils.FormatCode(Codigo.ToString(), "0", 3, true);                      // código do banco na compensação
-                header += "9999";                                                                       // Lote de Serviço
-                header += "9";                                                                          // Tipo de Registro 
-                header += Utils.FormatCode("", " ", 9);                                                 // Uso Exclusivo FEBRABAN/CNAB
-                header += "000001";                                                                     // Quantidade de Lotes do Arquivo
-                header += Utils.FormatCode(numeroRegistro.ToString(), "0", 6);                          // Quantidade de Registros do Arquivo
-                header += Utils.FormatCode("", " ", 6);                                                 // Uso Exclusivo FEBRABAN/CNAB
-                header += Utils.FormatCode("", " ", 205);                                               // Uso Exclusivo FEBRABAN/CNAB
+                trailler.Append("104");//001 a 003                      
+                trailler.Append("9999");//004 a 007                                                                 
+                trailler.Append("9");//008 a 008                                                                    
+                trailler.Append(Utils.FormatCode("", " ", 9));//009 a 017                                           
+                trailler.Append(Utils.FitStringLength(QtdLotesGeral.ToString(), 6, 6, '0', 0, true, true, true));//018 a 023                                                                     
+                trailler.Append(Utils.FitStringLength(numeroRegistro.ToString(), 6, 6, '0', 0, true, true, true));//024 a 029                                                 
+                trailler.Append(Utils.FormatCode("", " ", 6));//030 a 035                                                                                                                  
+                trailler.Append(Utils.FormatCode("", " ", 205));//036 a 240                                               
 
-                return header;
+                return Utils.SubstituiCaracteresEspeciais(trailler.ToString());
             }
             catch (Exception e)
             {
