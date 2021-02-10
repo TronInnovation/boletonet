@@ -949,19 +949,19 @@ namespace BoletoNet
                 detalhe.Append(Utils.FitStringLength(boleto.ValorBoleto.ToString("0.00").Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//086 a 100 
                 detalhe.Append(Utils.FormatCode("", "0", 5));//101 a 105                      
                 detalhe.Append("0");//106 a 106                                          
-                detalhe.Append(Utils.FitStringLength(boleto.EspecieDocumento.Codigo.ToString(), 2, 2, '0', 0, true, true, true));//107 a 108                                
-                detalhe.Append("N");//109 a 109                                                                
+                detalhe.Append("99");//107 a 108                                
+                detalhe.Append("S");//109 a 109                                                                
                 detalhe.Append((boleto.DataProcessamento.ToString("ddMMyyyy") == "01010001" ? DateTime.Now.ToString("ddMMyyyy") : boleto.DataProcessamento.ToString("ddMMyyyy")));//110 a 117
-                detalhe.Append("1");//118 a 118                                                                          
+                detalhe.Append(Utils.FitStringLength(boleto.CodigoJuro.ToString(), 1, 1, '0', 0, true, true, true));//118 a 118                                                                          
                 detalhe.Append(boleto.DataVencimento.AddDays(1).ToString("ddMMyyyy"));//119 a 126 
 
-                if (boleto.CodigoJuro == 1)
+                if (boleto.CodJurosMora == "1")
                     valorJuros = (decimal)(boleto.ValorJurosMora / 30);
                 else
-                    valorJuros = (decimal)(boleto.PercJuros);
+                    valorJuros = (decimal)(boleto.JurosMora);
 
-                detalhe.Append(Utils.FitStringLength(valorJuros.ToString("0.00").Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//127 a 141 
-                detalhe.Append(Utils.FormatCode(((boleto.CodigoDesconto == null || boleto.CodigoDesconto == "") ? "1" : boleto.CodigoDesconto), "0", 1));//142 a 142
+                detalhe.Append(Utils.FitStringLength(valorJuros.ToString().Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//127 a 141 
+                detalhe.Append(Utils.FormatCode(((boleto.ValorDesconto != 0 || boleto.CodigoDesconto != null) ? "1" : "0"), "0", 1));//142 a 142
                 detalhe.Append((boleto.DataDesconto.ToString("ddMMyyyy") == "01010001" ? "00000000" : boleto.DataDesconto.ToString("ddMMyyyy")));//143 a 150 
                 detalhe.Append(Utils.FitStringLength(boleto.ValorDesconto.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//151 a 165 
                 detalhe.Append(Utils.FitStringLength(boleto.IOF.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//166 a 180 
@@ -970,7 +970,7 @@ namespace BoletoNet
                 detalhe.Append(boleto.ProtestaTitulos == true ? "1" : "3");//221 a 221                                                      
                 detalhe.Append(diasProtesto.ToString("00")) ;//222 a 223                                                  
                 detalhe.Append("1");//224 a 225                                                 
-                detalhe.Append(_diasDevolucao.ToString("000"));//225 a 227                                                 
+                detalhe.Append(_diasDevolucao.ToString("090"));//225 a 227                                                 
                 detalhe.Append(boleto.Moeda.ToString("00"));//228 a 229                                                   
                 detalhe.Append(Utils.FormatCode("", "0", 10));//230 a 239                                                
                 detalhe.Append(Utils.FormatCode("", " ", 1));//240 a 240
