@@ -952,7 +952,7 @@ namespace BoletoNet
                 detalhe.Append("99");//107 a 108                                
                 detalhe.Append("S");//109 a 109                                                                
                 detalhe.Append((boleto.DataProcessamento.ToString("ddMMyyyy") == "01010001" ? DateTime.Now.ToString("ddMMyyyy") : boleto.DataProcessamento.ToString("ddMMyyyy")));//110 a 117
-                detalhe.Append(Utils.FitStringLength(boleto.CodigoJuro.ToString(), 1, 1, '0', 0, true, true, true));//118 a 118                                                                          
+                detalhe.Append(Utils.FitStringLength(boleto.CodJurosMora.ToString(), 1, 1, '0', 0, true, true, true));//118 a 118                                                                          
                 detalhe.Append(boleto.DataVencimento.AddDays(1).ToString("ddMMyyyy"));//119 a 126 
 
                 if (boleto.CodJurosMora == "1")
