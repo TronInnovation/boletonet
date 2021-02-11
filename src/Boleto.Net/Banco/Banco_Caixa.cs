@@ -934,8 +934,8 @@ namespace BoletoNet
                 else
                 {
                     detalhe.Append(Utils.FitStringLength("0", 1, 1, '0', 0, true, true, true));//040 a 040 
-                    detalhe.Append(Utils.FitStringLength("14", 2, 2, '0', 0, true, true, true));//041 a 042
-                    detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 15, 15, '0', 0, true, true, true));//043 a 057
+                    //detalhe.Append(Utils.FitStringLength("14", 2, 2, '0', 0, true, true, true));//041 a 042
+                    detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 17, 17, '0', 0, true, true, true));//043 a 057
                 }
 
                 detalhe.Append(Utils.FitStringLength("1", 1, 1, '0', 0, true, true, true));//058 a 058   
