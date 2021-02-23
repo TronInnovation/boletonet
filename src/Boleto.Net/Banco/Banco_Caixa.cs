@@ -103,8 +103,8 @@ namespace BoletoNet
                     campoLivre = string.Format("{0}{1}{2}{3}{4}", contaCedente, agenciaCedente, codigoCarteira,
                         constante, nossoNumero);
                 }
-            //17 POSIÇÕES
-            if (boleto.NossoNumero.Length == 17)
+                //17 POSIÇÕES
+                if (boleto.NossoNumero.Length == 17)
                 {
                     //104 - Caixa Econômica Federal S.A. 
                     //Carteira SR - 24 (cobrança sem registro) || Carteira RG - 14 (cobrança com registro)
@@ -181,7 +181,7 @@ namespace BoletoNet
                 //Cobrança sem registro. 
                 //Cobrança sem registro, nosso número com 16 dígitos. 
                 //Cobrança simples 
-                
+
                 //Posição 30
                 string primeiraConstante = (boleto.Carteira == CarteiraSR || boleto.Carteira.Equals("SR")) ? "2" : boleto.Carteira;
 
@@ -501,7 +501,7 @@ namespace BoletoNet
                 {
 
                     case TipoArquivo.CNAB240:
-                        _header = GerarHeaderRemessaCNAB240(cedente,  numeroArquivoRemessa);
+                        _header = GerarHeaderRemessaCNAB240(cedente, numeroArquivoRemessa);
                         break;
                     case TipoArquivo.CNAB400:
                         _header = GerarHeaderRemessaCNAB400(0, cedente, numeroArquivoRemessa);
@@ -532,7 +532,7 @@ namespace BoletoNet
                         if (boletos.Remessa.TipoDocumento.Equals("2") || boletos.Remessa.TipoDocumento.Equals("1"))
                             _header = GerarHeaderRemessaCNAB240SIGCB(cedente);
                         else
-                            _header = GerarHeaderRemessaCNAB240(cedente,  numeroArquivoRemessa);
+                            _header = GerarHeaderRemessaCNAB240(cedente, numeroArquivoRemessa);
                         break;
                     case TipoArquivo.CNAB400:
                         _header = GerarHeaderRemessaCNAB400(0, cedente, numeroArquivoRemessa);
@@ -856,7 +856,7 @@ namespace BoletoNet
         }
         private string GerarHeaderLoteRemessaCNAB240(Cedente cedente, int numeroArquivoRemessa)
         {
-            QtdLotesGeral ++;
+            QtdLotesGeral++;
             QtdRegistrosGeral++;
             QtdRegistrosLote = 0;
             QtdTitulosLote = 0;
@@ -909,6 +909,7 @@ namespace BoletoNet
                 var nConvenio = int.Parse(numeroConvenio);
 
                 var valorJuros = 0.00m;
+                var jurosPercentual = 0.00m;
 
                 var detalhe = new StringBuilder();
 
@@ -956,11 +957,16 @@ namespace BoletoNet
                 detalhe.Append(boleto.DataVencimento.AddDays(1).ToString("ddMMyyyy"));//119 a 126 
 
                 if (boleto.CodJurosMora == "1")
-                    valorJuros = (decimal)(boleto.ValorJurosMora / 30);
+                {
+                    valorJuros = (decimal)(boleto.JurosMora / 30);
+                }
                 else
-                    valorJuros = (decimal)(boleto.JurosMora);
+                {
+                    jurosPercentual = boleto.PercJurosMora;
 
-                detalhe.Append(Utils.FitStringLength(valorJuros.ToString().Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//127 a 141 
+                }
+
+                detalhe.Append(Utils.FitStringLength(boleto.CodJurosMora == "1" ? valorJuros.ToString().Replace(",", "").Replace(".", "") : jurosPercentual.ToString().Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//127 a 141 
                 detalhe.Append(Utils.FormatCode(((boleto.ValorDesconto != 0 || boleto.CodigoDesconto != null) ? "1" : "0"), "0", 1));//142 a 142
                 detalhe.Append((boleto.DataDesconto.ToString("ddMMyyyy") == "01010001" ? "00000000" : boleto.DataDesconto.ToString("ddMMyyyy")));//143 a 150 
                 detalhe.Append(Utils.FitStringLength(boleto.ValorDesconto.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//151 a 165 
@@ -968,7 +974,7 @@ namespace BoletoNet
                 detalhe.Append(Utils.FitStringLength(boleto.ValorAbatimento.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//188 a 195
                 detalhe.Append(Utils.FitStringLength(Utils.OnlyNumbers(boleto.NumeroDocumento), 25, 25, '0', 0, true, true, true));//196 a 220                                                
                 detalhe.Append(boleto.ProtestaTitulos == true ? "1" : "3");//221 a 221                                                      
-                detalhe.Append(diasProtesto.ToString("00")) ;//222 a 223                                                  
+                detalhe.Append(diasProtesto.ToString("00"));//222 a 223                                                  
                 detalhe.Append("1");//224 a 225                                                 
                 detalhe.Append(_diasDevolucao.ToString("090"));//225 a 227                                                 
                 detalhe.Append(boleto.Moeda.ToString("00"));//228 a 229                                                   
@@ -1028,6 +1034,7 @@ namespace BoletoNet
             QtdRegistrosLote++;
 
             var detalhe = new StringBuilder();
+            var codigomulta = boleto.PercMulta > 0 ? 2 : boleto.ValorMulta > 0 ? 1 : 0;
 
             try
             {
@@ -1044,9 +1051,9 @@ namespace BoletoNet
                 detalhe.Append(Utils.FormatCode("0", "0", 1));//042 a 042
                 detalhe.Append(Utils.FormatCode("", "0", 8));//043 a 050
                 detalhe.Append(Utils.FormatCode("", "0", 15));//051 a 065
-                detalhe.Append(Utils.FitStringLength(boleto.CodigoMulta.ToString(), 1, 1, '0', 0, true, true, true));//066 a 066
+                detalhe.Append(Utils.FitStringLength(codigomulta.ToString(), 1, 1, '0', 0, true, true, true));//066 a 066
                 detalhe.Append(Utils.FormatCode(boleto.DataMulta.ToString("ddMMyyyy") == "01010001" ? "0" : boleto.DataMulta.ToString("ddMMyyyy"), "0", 8));//067 a 074
-                detalhe.Append(Utils.FormatCode(boleto.CodigoMulta == 0 ? "0" : (boleto.CodigoMulta == 1 ? boleto.ValorMulta.ToString().Replace(",", "").Replace(".", "") : boleto.PercMulta.ToString().Replace(",", "").Replace(".", "")), "0", 15, true));//075 a 089 
+                detalhe.Append(Utils.FormatCode(codigomulta == 0 ? "0" : (codigomulta == 1 ? boleto.ValorMulta.ToString().Replace(",", "").Replace(".", "") : boleto.PercMulta.ToString().Replace(",", "").Replace(".", "")), "0", 15, true));//075 a 089 
                 detalhe.Append(Utils.FormatCode("", " ", 10));//090 a 099                                                
                 detalhe.Append(Utils.FormatCode("", " ", 40));//100 a 139                                                
                 detalhe.Append(Utils.FormatCode("", " ", 40));//140 a 179                                                
@@ -1386,8 +1393,8 @@ namespace BoletoNet
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0151, 015, 2, boleto.ValorDesconto, '0'));                          // posição 151 até 165 (15)- Valor/Percentual a ser Concedido
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0166, 015, 2, boleto.IOF, '0'));                                    // posição 166 até 180 (15)- Valor do IOF a ser concedido
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0181, 015, 2, boleto.Abatimento, '0'));                             // posição 181 até 195 (15)- Valor do Abatimento
-                //Alterado por diegodariolli 16/03/2018 - acredito que para controle interno do software deve ser informado aqui o número de controle e não o número do documento, já informado anteriormente
-				reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediAlphaAliEsquerda_____, 0196, 025, 0, boleto.NumeroControle, ' '));                        // posição 196 até 220 (25)- Identificação do Título na Empresa. Informar o Número do Documento - Seu Número (mesmo das posições 63-73 do Segmento P)
+                                                                                                                                                                    //Alterado por diegodariolli 16/03/2018 - acredito que para controle interno do software deve ser informado aqui o número de controle e não o número do documento, já informado anteriormente
+                reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediAlphaAliEsquerda_____, 0196, 025, 0, boleto.NumeroControle, ' '));                        // posição 196 até 220 (25)- Identificação do Título na Empresa. Informar o Número do Documento - Seu Número (mesmo das posições 63-73 do Segmento P)
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0221, 001, 0, (_protestar ? "1" : "3"), '0'));                       // posição 221 até 221 (1) -  Código para protesto  - ?1? = Protestar. "3" = Não Protestar. "9" = Cancelamento Protesto Automático
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0222, 002, 0, _diasProtesto, '0'));                                  // posição 222 até 223 (2) -  Número de Dias para Protesto                
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0224, 001, 0, (_baixaDevolver || !_protestar ? "1" : "2"), '0'));    // posição 224 até 224 (1) -  Código para Baixa/Devolução ?1? = Baixar / Devolver. "2" = Não Baixar / Não Devolver
@@ -1919,49 +1926,49 @@ namespace BoletoNet
                             reg.IdentificacaoTituloCaixa_NossoNumero.Length - 1),
                     MotivosRejeicao = reg.CodigoMotivoRejeicao,
                     Carteira = reg.CodigoCarteira,
-                    CodigoOcorrencia = !string.IsNullOrEmpty(reg.CodigoOcorrencia ) ? 
-                        Utils.ToInt32(reg.CodigoOcorrencia) 
+                    CodigoOcorrencia = !string.IsNullOrEmpty(reg.CodigoOcorrencia) ?
+                        Utils.ToInt32(reg.CodigoOcorrencia)
                         : 0,
-                    DataOcorrencia = !string.IsNullOrEmpty(reg.DataOcorrencia) ? 
+                    DataOcorrencia = !string.IsNullOrEmpty(reg.DataOcorrencia) ?
                         Utils.ToDateTime(Utils.ToInt32(reg.DataOcorrencia).ToString("##-##-##"))
                         : DateTime.MinValue,
                     NumeroDocumento = reg.NumeroDocumento,
 
-                    DataVencimento = !string.IsNullOrEmpty(reg.DataVencimentoTitulo) ? 
+                    DataVencimento = !string.IsNullOrEmpty(reg.DataVencimentoTitulo) ?
                         Utils.ToDateTime(Utils.ToInt32(reg.DataVencimentoTitulo).ToString("##-##-##"))
                         : DateTime.MinValue,
-                    ValorTitulo = !string.IsNullOrEmpty(reg.ValorTitulo) ? 
-                        Convert.ToDecimal(reg.ValorTitulo) /100
+                    ValorTitulo = !string.IsNullOrEmpty(reg.ValorTitulo) ?
+                        Convert.ToDecimal(reg.ValorTitulo) / 100
                         : 0,
-                    CodigoBanco = !string.IsNullOrEmpty(reg.CodigoBancoCobrador) ? 
-                        Utils.ToInt32(reg.CodigoBancoCobrador) 
+                    CodigoBanco = !string.IsNullOrEmpty(reg.CodigoBancoCobrador) ?
+                        Utils.ToInt32(reg.CodigoBancoCobrador)
                         : 0,
-                    AgenciaCobradora = !string.IsNullOrEmpty(reg.CodigoAgenciaCobradora) ? 
-                        Utils.ToInt32(reg.CodigoAgenciaCobradora) 
+                    AgenciaCobradora = !string.IsNullOrEmpty(reg.CodigoAgenciaCobradora) ?
+                        Utils.ToInt32(reg.CodigoAgenciaCobradora)
                         : 0,
-                    ValorDespesa = !string.IsNullOrEmpty(reg.ValorDespesasCobranca) ? 
+                    ValorDespesa = !string.IsNullOrEmpty(reg.ValorDespesasCobranca) ?
                         (Convert.ToDecimal(reg.ValorDespesasCobranca) / 100)
-                        : 0 ,
+                        : 0,
                     OrigemPagamento = reg.TipoLiquidacao,
-                    IOF = !string.IsNullOrEmpty(reg.ValorIOF) ? 
+                    IOF = !string.IsNullOrEmpty(reg.ValorIOF) ?
                         (Convert.ToDecimal(reg.ValorIOF) / 100)
-                        : 0 ,
-                    ValorAbatimento = !string.IsNullOrEmpty(reg.ValorAbatimentoConcedido) ? 
+                        : 0,
+                    ValorAbatimento = !string.IsNullOrEmpty(reg.ValorAbatimentoConcedido) ?
                         (Convert.ToDecimal(reg.ValorAbatimentoConcedido) / 100)
                         : 0,
-                    Descontos = !string.IsNullOrEmpty(reg.ValorDescontoConcedido) ? 
+                    Descontos = !string.IsNullOrEmpty(reg.ValorDescontoConcedido) ?
                         (Convert.ToDecimal(reg.ValorDescontoConcedido) / 100)
                         : 0,
-                    ValorPago = !string.IsNullOrEmpty(reg.ValorPago) ? 
+                    ValorPago = !string.IsNullOrEmpty(reg.ValorPago) ?
                         Convert.ToDecimal(reg.ValorPago) / 100
-                        : 0 ,
-                    JurosMora = !string.IsNullOrEmpty(reg.ValorJuros) ? 
+                        : 0,
+                    JurosMora = !string.IsNullOrEmpty(reg.ValorJuros) ?
                         (Convert.ToDecimal(reg.ValorJuros) / 100)
                         : 0,
-                    TarifaCobranca = !string.IsNullOrEmpty(reg.ValorDespesasCobranca) ? 
+                    TarifaCobranca = !string.IsNullOrEmpty(reg.ValorDespesasCobranca) ?
                         (Convert.ToDecimal(reg.ValorDespesasCobranca) / 100)
-                        : 0 ,
-                    DataCredito = !string.IsNullOrEmpty(reg.DataCreditoConta) ? 
+                        : 0,
+                    DataCredito = !string.IsNullOrEmpty(reg.DataCreditoConta) ?
                         Utils.ToDateTime(Utils.ToInt32(reg.DataCreditoConta).ToString("##-##-##"))
                         : DateTime.MinValue,
 
