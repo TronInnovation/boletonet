@@ -119,7 +119,7 @@ namespace BoletoNet
 
             //Variaveis
             StringBuilder novoNumero = new StringBuilder();
- 
+
             //Formatando
             for (int i = 0; i < (3 - boleto.NumeroParcela.ToString().Length); i++)
             {
@@ -214,7 +214,7 @@ namespace BoletoNet
                 soma = soma + temp;
             }
             linhaDigitavel.Append(string.Format("{0}.{1}{2} ", campo1.Substring(0, 5), campo1.Substring(5, 4), Multiplo10(soma)));
-            
+
             soma = 0;
             temp = 0;
             //Formatando o campo 2
@@ -271,14 +271,14 @@ namespace BoletoNet
 
 
             //Verifica se data do processamento é valida
-			//if (boleto.DataProcessamento.ToString("dd/MM/yyyy") == "01/01/0001")
-			if (boleto.DataProcessamento == DateTime.MinValue) // diegomodolo (diego.ribeiro@nectarnet.com.br)
+            //if (boleto.DataProcessamento.ToString("dd/MM/yyyy") == "01/01/0001")
+            if (boleto.DataProcessamento == DateTime.MinValue) // diegomodolo (diego.ribeiro@nectarnet.com.br)
                 boleto.DataProcessamento = DateTime.Now;
 
 
             //Verifica se data do documento é valida
-			//if (boleto.DataDocumento.ToString("dd/MM/yyyy") == "01/01/0001")
-			if (boleto.DataDocumento == DateTime.MinValue) // diegomodolo (diego.ribeiro@nectarnet.com.br)
+            //if (boleto.DataDocumento.ToString("dd/MM/yyyy") == "01/01/0001")
+            if (boleto.DataDocumento == DateTime.MinValue) // diegomodolo (diego.ribeiro@nectarnet.com.br)
                 boleto.DataDocumento = DateTime.Now;
 
             boleto.QuantidadeMoeda = 0;
@@ -477,7 +477,7 @@ namespace BoletoNet
                 string _detalhe = " ";
 
                 //Se o nosso número ainda não foi formatado então formata
-                if (!string.IsNullOrWhiteSpace(boleto.NossoNumero)  && boleto.NossoNumero.Length <= 7)
+                if (!string.IsNullOrWhiteSpace(boleto.NossoNumero) && boleto.NossoNumero.Length <= 7)
                 {
                     FormataNossoNumero(boleto);
                 }
@@ -591,24 +591,24 @@ namespace BoletoNet
         {
             throw new NotImplementedException("Função não implementada.");
         }
-		
-		/// <summary>
+
+        /// <summary>
         /// Função que gera nosso numero a ser colocado na remessa sicoob CNAB240, segundo layout para troca de informações
         /// </summary>
         /// <param name="boleto"></param>
         /// <returns></returns>
-        private string NossoNumeroFormatado( Boleto boleto )
+        private string NossoNumeroFormatado(Boleto boleto)
         {
             FormataNossoNumero(boleto);
 
-            string retorno = Utils.FormatCode(boleto.NossoNumero.Replace("-",""), "0", 10, true); // nosso numero+dg - 10 posicoes
+            string retorno = Utils.FormatCode(boleto.NossoNumero.Replace("-", ""), "0", 10, true); // nosso numero+dg - 10 posicoes
             retorno = retorno + Utils.FormatCode(boleto.NumeroParcela.ToString(), "0", 2, true); // numero parcela - 2 posicoes
             retorno = retorno + Utils.FormatCode(boleto.ModalidadeCobranca.ToString(), "0", 2, true); // modalidade - 2 posicoes
             retorno = retorno + "4"; // tipo formulario (A4 sem envelopamento) - 1 posicoes;
             retorno = retorno + Utils.FormatCode("", " ", 5); // brancos - 5 posicoes ;
             return retorno;
         }
-		
+
         public override string GerarDetalheSegmentoPRemessa(Boleto boleto, int numeroRegistro, string numeroConvenio)
         {
             try
@@ -662,13 +662,13 @@ namespace BoletoNet
                     detalhe += Utils.FormatCode("", "0", 8, true); ; //Posição 143 a 150  - Data do Desconto
                     detalhe += Utils.FormatCode("", "0", 15, true);
                 }
-                
+
                 detalhe += Utils.FormatCode(boleto.IOF.ToString(), 15);//Posição 166 a 180   -  Valor do IOF a ser Recolhido
                 detalhe += Utils.FormatCode(boleto.Abatimento.ToString(), 15);//Posição 181 a 195   - Valor do Abatimento
                 detalhe += Utils.FormatCode(boleto.NumeroDocumento, " ", 25); //Posição 196 a 220  - Identificação do título
 
                 detalhe += Utils.FormatCode(boleto.ProtestaTitulos == true ? "1" : "3", "0", 1, true);//Posição 221 a 222 - protesta titulos
-                
+
 
                 #region Instruções
 
@@ -746,19 +746,11 @@ namespace BoletoNet
                 detalhe += " ";  //Posição 015 Uso Exclusivo FEBRABAN/CNAB: Brancos
                 detalhe += "01"; //Posição 016 a 017       '01'  =  Entrada de Títulos
 
-                if (boleto.DataOutrosDescontos > DateTime.MinValue)
-                {
-                    detalhe += "1"; //Posição 18  - Código do desconto 2
-                    detalhe += Utils.FormatCode(boleto.DataOutrosDescontos.ToString("ddMMyyyy"), 8); //Posição 19 a 26  - Data do Desconto 2
-                    detalhe += Utils.FormatCode(boleto.OutrosDescontos.ToString("f").Replace(",", "").Replace(".", ""), 15);  //Posição 27 a 41  - Valor do Desconto 2
-                }
-                else
-                {
-                    detalhe += "0"; //Posição 18  - Código do desconto 2
-                    detalhe += Utils.FormatCode("", "0", 8, true); //Posição 19 a 26  - Data do Desconto 2
-                    detalhe += Utils.FormatCode("", "0", 15, true);  //Posição 27 a 41  - Valor do Desconto 2
-                }
-                
+                detalhe += "0"; //Posição 18  - Código do desconto 2
+                detalhe += Utils.FormatCode("", "0", 8, true); //Posição 19 a 26  - Data do Desconto 2
+                detalhe += Utils.FormatCode("", "0", 15, true);  //Posição 27 a 41  - Valor do Desconto 2
+
+
                 detalhe += "0"; //Posição 42  - Código da desconto 3
                 detalhe += Utils.FormatCode("", "0", 8, true);
                 detalhe += Utils.FormatCode("", "0", 15, true);
@@ -785,11 +777,11 @@ namespace BoletoNet
                     detalhe += Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true);
                 }
 
-                detalhe += Utils.FormatCode(""," ", 10); //Posição 90 a 99 Informação ao Pagador: Brancos
-                detalhe += Utils.FormatCode(""," ", 40); //Posição 100 a 139 Informação ao Pagador: Brancos
-                detalhe += Utils.FormatCode(""," ", 40); //Posição 140 a 179 Informação ao Pagador: Brancos
-                detalhe += Utils.FormatCode(""," ", 20); //Posição 180 a 199 Uso Exclusivo FEBRABAN/CNAB: Brancos
-                detalhe += Utils.FormatCode(boleto.DataLimitePagamento != DateTime.MinValue? boleto.DataLimitePagamento.ToString("ddMMyyyy"): "", "0", 8, true);  //Posição 200 a 207  Cód. Ocor. do Pagador: "00000000"
+                detalhe += Utils.FormatCode("", " ", 10); //Posição 90 a 99 Informação ao Pagador: Brancos
+                detalhe += Utils.FormatCode("", " ", 40); //Posição 100 a 139 Informação ao Pagador: Brancos
+                detalhe += Utils.FormatCode("", " ", 40); //Posição 140 a 179 Informação ao Pagador: Brancos
+                detalhe += Utils.FormatCode("", " ", 20); //Posição 180 a 199 Uso Exclusivo FEBRABAN/CNAB: Brancos
+                detalhe += Utils.FormatCode(boleto.DataLimitePagamento != DateTime.MinValue ? boleto.DataLimitePagamento.ToString("ddMMyyyy") : "", "0", 8, true);  //Posição 200 a 207  Cód. Ocor. do Pagador: "00000000"
                 detalhe += Utils.FormatCode("", "0", 3, true);  //Posição 208 a 210  Cód. do Banco na Conta do Débito: "000"
                 detalhe += Utils.FormatCode("", "0", 5, true);  //Posição 211 a 215  Código da Agência do Débito: "00000"
                 detalhe += " "; //Posição 216 Dígito Verificador da Agência: Brancos
@@ -797,7 +789,7 @@ namespace BoletoNet
                 detalhe += " "; //Posição 229  Verificador da Conta: Brancos
                 detalhe += " "; //Posição 230  Verificador Ag/Conta: Brancos
                 detalhe += "0"; //Posição 231  Aviso para Débito Automático: "0"
-                detalhe += Utils.FormatCode(""," ", 9); //Posição Uso Exclusivo FEBRABAN/CNAB: Brancos
+                detalhe += Utils.FormatCode("", " ", 9); //Posição Uso Exclusivo FEBRABAN/CNAB: Brancos
                 detalhe = Utils.SubstituiCaracteresEspeciais(detalhe);
                 return detalhe;
             }
@@ -898,7 +890,7 @@ namespace BoletoNet
         #endregion ARQUIVO DE REMESSA
 
         #region ::. Arquivo de Retorno CNAB400 .::
-        
+
         /// <summary>
         /// Rotina de retorno de remessa
         /// Criador: Adriano Trentim Augusto
@@ -922,25 +914,25 @@ namespace BoletoNet
                 detalhe.DACConta = Utils.ToInt32(registro.Substring(30, 1));
 
                 detalhe.NumeroControle = registro.Substring(37, 25); //Nº Controle do Participante
-                
+
                 //Identificação do Título no Banco
                 detalhe.NossoNumero = registro.Substring(62, 11);
                 detalhe.NossoNumeroComDV = registro.Substring(62, 12);
                 detalhe.DACNossoNumero = registro.Substring(73, 1);
 
                 switch (registro.Substring(106, 2)) // Carteira
-	        {
-	          case "01":
-	            detalhe.Carteira = "1";
-	            break;
-	          case "02":
-	            detalhe.Carteira = "1";
-	            break;
-	          case "03":
-	            detalhe.Carteira = "3";
-	            break;
-	        }
-	        
+                {
+                    case "01":
+                        detalhe.Carteira = "1";
+                        break;
+                    case "02":
+                        detalhe.Carteira = "1";
+                        break;
+                    case "03":
+                        detalhe.Carteira = "3";
+                        break;
+                }
+
                 detalhe.CodigoOcorrencia = Utils.ToInt32(registro.Substring(108, 2)); //Identificação de Ocorrência
                 detalhe.DescricaoOcorrencia = this.Ocorrencia(registro.Substring(108, 2)); //Descrição da ocorrência
                 detalhe.DataOcorrencia = Utils.ToDateTime(Utils.ToInt32(registro.Substring(110, 6)).ToString("##-##-##")); //Data da ocorrencia
