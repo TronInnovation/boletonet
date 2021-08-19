@@ -22,10 +22,15 @@ public partial class Bancos_Itau : System.Web.UI.Page
         //c.Endereco.UF = "DF";
 
         //boletoBancario.MostrarEnderecoCedente = true;
-
-        Boleto b = new Boleto(vencimento, 0.1m, "176", "00000001", c, new EspecieDocumento(341, "1"));
+        EspecieDocumento especiedocumento = new EspecieDocumento(341, "1");
+        Boleto b = new Boleto();
+        b.DataVencimento = vencimento;
+        b.ValorBoleto = 0.1m;
+        b.Carteira = "176";
+        b.NossoNumero = "00000001";
+        b.EspecieDocumento = especiedocumento;
+        b.Cedente = c;
         b.NumeroDocumento = "00000001";
-
         b.Sacado = new Sacado("000.000.000-00", "Nome do seu Cliente ");
         b.Sacado.Endereco.End = "Endereço do seu Cliente ";
         b.Sacado.Endereco.Bairro = "Bairro";
