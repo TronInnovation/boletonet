@@ -149,12 +149,17 @@ namespace BoletoNet.Arquivo
                 c.ContaBancaria.Agencia = "0132";               
                 c.ContaBancaria.Conta = "00542";
                 c.ContaBancaria.OperacaConta = "10";
+                EspecieDocumento especiedocumento = new EspecieDocumento(_codigoBanco, "A");
 
-                Boleto b = new Boleto(vencimento, Convert.ToDecimal(1460), "1", "17200001" , c, new EspecieDocumento(_codigoBanco, "A"));
-               
+                Boleto b = new Boleto();
+                b.DataVencimento = vencimento;
+                b.ValorBoleto = Convert.ToDecimal(1460);
+                b.Carteira = "1";
+                b.NossoNumero = "17200001";
+                b.EspecieDocumento = especiedocumento;
+                b.Cedente = c;
                 Endereco endCed = new Endereco();
-
-                b.NumeroParcela = 1;
+               b.NumeroParcela = 1;
                 b.TotalParcela = 10;
                 b.TipoImpressao = "B";
 
@@ -207,8 +212,15 @@ namespace BoletoNet.Arquivo
                 Cedente c = new Cedente("00.000.000/0000-00", "Empresa de Atacado", "0542", "13000");
                 //Na carteira 198 o código do Cedente é a conta bancária
                 c.Codigo = "13000";
+                EspecieDocumento especiedocumento = new EspecieDocumento(341, "1");
 
-                Boleto b = new Boleto(vencimento, 1642, "198", "92082835", c, new EspecieDocumento(341, "1"));
+                Boleto b = new Boleto();
+                b.DataVencimento = vencimento;
+                b.ValorBoleto = 1642;
+                b.Carteira = "198";
+                b.NossoNumero = "92082835";
+                b.EspecieDocumento = especiedocumento;
+                b.Cedente = c;
                 b.NumeroDocumento = Convert.ToString(10000 + i);
 
                 b.Sacado = new Sacado("000.000.000-00", "Fulano de Silva");
