@@ -532,14 +532,19 @@ namespace BoletoNet {
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediDataDDMMAAAA_________, 0110, 008, 0, boleto.DataDocumento, '0'));                          // posição 110-117 (008) - Data da Emissão do Título
 
                 #region Código de juros
-                string CodJurosMora;
-                if (boleto.JurosMora == 0 && boleto.PercJurosMora == 0)
-                    CodJurosMora = "3"; //  Isento
-                else
-                    CodJurosMora = "1"; // Valor por Dia
+                //string CodJurosMora;
+                //if (boleto.JurosMora == 0 && boleto.PercJurosMora == 0)
+                    //CodJurosMora = "3"; //  Isento
+                //else
+                    //CodJurosMora = "1"; // Valor por Dia
                 #endregion
 
-                reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0118, 001, 0, CodJurosMora, '0'));                                  // posição 118-118 (001) - Código do Juros de Mora
+                if (boleto.JurosMora < 0.01m)
+                {
+                    boleto.JurosMora = 0.01m;
+                }
+
+                reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0118, 001, 0, boleto.CodigoJuro, '0'));                                  // posição 118-118 (001) - Código do Juros de Mora
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediDataDDMMAAAA_________, 0119, 008, 0, boleto.DataJurosMora, '0'));                          // posição 119-126 (008) - Data do Juros de Mora
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0127, 015, 2, boleto.JurosMora, '0'));                              // posição 127-141 (015)- Juros de Mora por Dia/Taxa
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0142, 001, 0, "0", '0'));                                           // posição 142-142 (001) -  Código do Desconto 1 - "0" = Sem desconto. "1"= Valor Fixo-a data informada "2" = Percentual-a data informada
