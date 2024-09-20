@@ -188,7 +188,7 @@ namespace BoletoNet {
         internal static string GetFormatedNossoNumero(Boleto boleto) {
             string _nossoNumero = string.Format("{0}{1}",
                 Utils.FormatCode(boleto.Cedente.ContaBancaria.Conta + boleto.Cedente.ContaBancaria.DigitoConta, 8),
-                Utils.FormatCode(boleto.NossoNumero, 9));
+                Utils.FormatCode(boleto.NumeroDocumento, 9));
             return _nossoNumero;
         }
         #endregion
@@ -541,7 +541,7 @@ namespace BoletoNet {
 
                 if (boleto.JurosMora < 0.01m)
                 {
-                    boleto.JurosMora = 0.01m;
+                    boleto.JurosMora = 1.00m;
                 }
 
                 reg.CamposEDI.Add(new TCampoRegistroEDI(TTiposDadoEDI.ediNumericoSemSeparador_, 0118, 001, 0, boleto.CodigoJuro, '0'));                                  // posição 118-118 (001) - Código do Juros de Mora
