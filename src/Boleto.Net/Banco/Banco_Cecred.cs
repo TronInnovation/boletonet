@@ -42,7 +42,7 @@ namespace BoletoNet {
             string codigoMoeda = "9";
             string fatorVencimento = FatorVencimento(boleto).ToString();
             string valorNominal = Utils.FormatCode(boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", ""), 10);//10
-            string numeroConvenio = Utils.FormatCode(boleto.Cedente.Codigo, 6);
+            string numeroConvenio = Utils.FormatCode(boleto.Cedente.Codigo, "0", 6, true);
             string numeroConta = Utils.FormatCode(boleto.Cedente.ContaBancaria.Conta + boleto.Cedente.ContaBancaria.DigitoConta, 8);
             string nossoNumero = Utils.FormatCode(boleto.NossoNumero, 9);
             string codigoCarteira = Utils.FormatCode(boleto.Carteira, 2);
@@ -63,7 +63,7 @@ namespace BoletoNet {
             string codigoMoeda = "9";
             string fatorVencimento = FatorVencimento(boleto).ToString();
             string valorNominal = Utils.FormatCode(boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", ""), 10);//10
-            string numeroConvenio = Utils.FormatCode(boleto.Cedente.Codigo, 6);
+            string numeroConvenio = Utils.FormatCode(boleto.Cedente.Codigo, "0", 6, true);
             string numeroConta = Utils.FormatCode(boleto.Cedente.ContaBancaria.Conta + boleto.Cedente.ContaBancaria.DigitoConta, 8);
             string nossoNumero = Utils.FormatCode(boleto.NossoNumero, 9);
             string codigoCarteira = Utils.FormatCode(boleto.Carteira, 2);
