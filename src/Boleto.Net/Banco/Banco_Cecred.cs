@@ -408,7 +408,7 @@ namespace BoletoNet {
                 _header += DateTime.Now.ToString("ddMMyyyy");                                                       // 144-151 Data de Geração do Arquivo
                 _header += DateTime.Now.ToString("hhMMss");                                                         // 152-157 Hora de Geração do Arquivo
                 _header += Utils.FitStringLength(numeroArquivoRemessa.ToString(), 6, 6, '0', 0, true, true, true);  // 158-163 Número Sequencial do Arquivo
-                _header += "084";                                                                                   // 164-166 No da Versão do Layout do Arquivo
+                _header += "087";                                                                                   // 164-166 No da Versão do Layout do Arquivo
                 _header += new string('0', 5);                                                                      // 167-171 Densidade de Gravação do Arquivo
 
                 // Reservados
@@ -444,7 +444,7 @@ namespace BoletoNet {
                 _headerLote += new string('R', 1);  // 04 009-009 Tipo de Operação
                 _headerLote += "01";                // 05 010-011 Tipo de Serviço
                 _headerLote += new string(' ', 2);  // 06 012-013 Uso Exclusivo FEBRABAN/CNAB
-                _headerLote += "043";               // 07 014-016 Layout do Lote
+                _headerLote += "045";               // 07 014-016 Layout do Lote
 
 
                 _headerLote += new string(' ', 1); // 08 017-017 Febraban Brancos
