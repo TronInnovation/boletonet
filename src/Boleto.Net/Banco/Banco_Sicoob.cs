@@ -648,7 +648,22 @@ namespace BoletoNet
 
                 var percentualJuros = (decimal)(boleto.PercJurosMora * 30);
 
-                detalhe += Utils.FormatCode(boleto.CodJurosMora == "0" ? "".PadLeft(15, '0') : (boleto.CodJurosMora == "1" ? boleto.JurosMora.ToString("f").Replace(",", "").Replace(".", "") : percentualJuros.ToString("f").Replace(",", "").Replace(".", "")), 15);   //Posição 127 a 141  - Data do Juros de Mora: preencher com a Data de Vencimento do Título
+                string valorJurosMora = "";
+
+                if (boleto.CodigoJuro == 0)
+                {
+                    valorJurosMora = "".PadLeft(15, '0');
+                }
+                else if (boleto.CodigoJuro == 1 || boleto.CodigoJuro == 2)
+                {
+                    valorJurosMora = boleto.JurosMora.ToString("f").Replace(",", "").Replace(".", "");
+                }
+                else
+                {
+                    valorJurosMora = percentualJuros.ToString("f").Replace(",", "").Replace(".", "");
+                }
+
+                detalhe += Utils.FormatCode(valorJurosMora, 15);//Posição 127 a 141  - Data do Juros de Mora: preencher com a Data de Vencimento do Título
 
                 if (boleto.DataDesconto > DateTime.MinValue)
                 {
