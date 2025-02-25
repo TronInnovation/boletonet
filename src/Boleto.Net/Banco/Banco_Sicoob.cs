@@ -188,7 +188,7 @@ namespace BoletoNet
 
         public override void FormataLinhaDigitavel(Boleto boleto)
         {
-            //Variaveis
+            // Variáveis
             String campo1 = string.Empty;
             String campo2 = string.Empty;
             String campo3 = string.Empty;
@@ -199,67 +199,83 @@ namespace BoletoNet
             int soma = 0;
             int temp = 0;
 
-            //Formatando o campo 1
+            // Formatando o campo 1
             campo1 = boleto.Banco.Codigo.ToString() + boleto.Moeda.ToString() + boleto.Cedente.Carteira + boleto.Cedente.ContaBancaria.Agencia;
-            //Calculando CAMPO 1
+
+            // Calculando CAMPO 1
+            soma = 0; 
             for (int i = 0; i < campo1.Length; i++)
             {
-                //Calculando indice
+                // Calculando indice
                 temp = (Convert.ToInt16(campo1.Substring(i, 1)) * Convert.ToInt16(indice.Substring(i + 1, 1)));
-                //Verifica se resultado é igual ou superior a 10
                 if (temp >= 10)
                 {
                     temp = Convert.ToInt16(temp.ToString().Substring(0, 1)) + Convert.ToInt16(temp.ToString().Substring(1, 1));
                 }
-                //Guardando soma
                 soma = soma + temp;
             }
-            linhaDigitavel.Append(string.Format("{0}.{1}{2} ", campo1.Substring(0, 5), campo1.Substring(5, 4), Multiplo10(soma)));
+            if (campo1.Length >= 9)
+            {
+                linhaDigitavel.Append(string.Format("{0}.{1}{2} ", campo1.Substring(0, 5), campo1.Substring(5, 4), Multiplo10(soma)));
+            }
 
             soma = 0;
-            temp = 0;
-            //Formatando o campo 2
-            campo2 = boleto.CodigoBarra.Codigo.Substring(24, 10);
-            for (int i = 0; i < campo2.Length; i++)
+            // Formatando o campo 2
+            if (boleto.CodigoBarra.Codigo.Length >= 34)
             {
-                //Calculando Indice 2
-                temp = (Convert.ToInt16(campo2.Substring(i, 1)) * Convert.ToInt16(indice.Substring(i, 1)));
-                //Verifica se resultado é igual ou superior a 10
-                if (temp >= 10)
+                campo2 = boleto.CodigoBarra.Codigo.Substring(24, 10);
+                for (int i = 0; i < campo2.Length; i++)
                 {
-                    temp = Convert.ToInt16(temp.ToString().Substring(0, 1)) + Convert.ToInt16(temp.ToString().Substring(1, 1));
+                    // Calculando índice 2
+                    temp = (Convert.ToInt16(campo2.Substring(i, 1)) * Convert.ToInt16(indice.Substring(i, 1)));
+                    if (temp >= 10)
+                    {
+                        temp = Convert.ToInt16(temp.ToString().Substring(0, 1)) + Convert.ToInt16(temp.ToString().Substring(1, 1));
+                    }
+                    soma = soma + temp;
                 }
-                //Guardando soma
-                soma = soma + temp;
+                if (campo2.Length >= 10)
+                {
+                    linhaDigitavel.Append(string.Format("{0}.{1}{2} ", campo2.Substring(0, 5), campo2.Substring(5, 5), Multiplo10(soma)));
+                }
             }
-
-            linhaDigitavel.Append(string.Format("{0}.{1}{2} ", campo2.Substring(0, 5), campo2.Substring(5, 5), Multiplo10(soma)));
 
             soma = 0;
-            temp = 0;
-            //Formatando campo 3
-            campo3 = boleto.CodigoBarra.Codigo.Substring(34, 10);
-            for (int i = 0; i < campo3.Length; i++)
+            // Formatando o campo 3
+            if (boleto.CodigoBarra.Codigo.Length >= 44)
             {
-                //Calculando indice 2
-                temp = (Convert.ToInt16(campo3.Substring(i, 1)) * Convert.ToInt16(indice.Substring(i, 1)));
-                //Verifica se resultado é igual ou superior a 10
-                if (temp >= 10)
+                campo3 = boleto.CodigoBarra.Codigo.Substring(34, 10);
+                for (int i = 0; i < campo3.Length; i++)
                 {
-                    temp = Convert.ToInt16(temp.ToString().Substring(0, 1)) + Convert.ToInt16(temp.ToString().Substring(1, 1));
+                    // Calculando índice 3
+                    temp = (Convert.ToInt16(campo3.Substring(i, 1)) * Convert.ToInt16(indice.Substring(i, 1)));
+                    if (temp >= 10)
+                    {
+                        temp = Convert.ToInt16(temp.ToString().Substring(0, 1)) + Convert.ToInt16(temp.ToString().Substring(1, 1));
+                    }
+                    soma = soma + temp;
                 }
-                //Guardando resultado
-                soma = soma + temp;
+                if (campo3.Length >= 10)
+                {
+                    linhaDigitavel.Append(campo3.Substring(0, 5) + "." + campo3.Substring(5, 5) + Multiplo10(soma) + " ");
+                }
             }
-            linhaDigitavel.Append(campo3.Substring(0, 5) + "." + campo3.Substring(5, 5) + Multiplo10(soma) + " ");
-            //Formatando Campo 4
-            campo4 = boleto.CodigoBarra.Codigo.Substring(4, 1);
-            linhaDigitavel.Append(campo4 + " ");
-            //Formatando Campo 5
+
+            // Formatando o campo 4
+            if (boleto.CodigoBarra.Codigo.Length >= 5)
+            {
+                campo4 = boleto.CodigoBarra.Codigo.Substring(4, 1);
+                linhaDigitavel.Append(campo4 + " ");
+            }
+
+            // Formatando o campo 5
             campo5 = FatorVencimento(boleto).ToString() + Utils.FormatCode(boleto.ValorBoleto.ToString("f").Replace(",", "").Replace(".", ""), 10);
             linhaDigitavel.Append(campo5);
+
+            // Atribuindo à linha digitável
             boleto.CodigoBarra.LinhaDigitavel = linhaDigitavel.ToString();
         }
+
 
         #endregion FORMATAÇÕES
 
