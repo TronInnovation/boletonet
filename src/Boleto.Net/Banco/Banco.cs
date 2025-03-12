@@ -1,3 +1,4 @@
+using BoletoNet;
 using System;
 using System.Collections;
 using System.Text;
@@ -176,6 +177,9 @@ namespace BoletoNet
                         break;
                     case 084:
                         _IBanco = new Banco_Uniprime();
+                        break;
+                    case 208:
+                        _IBanco = new Banco_Btg_Pactual();
                         break;
                     case ((int)Enums.Bancos.Maxima):
                         _IBanco = new Banco_Maxima();
