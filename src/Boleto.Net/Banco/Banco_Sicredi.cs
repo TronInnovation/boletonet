@@ -92,11 +92,12 @@ namespace BoletoNet
                 throw new BoletoNetException("Código do cedente deve ser informado, " + infoFormatoCodigoCedente);
 
             var conta = boleto.Cedente.ContaBancaria.Conta;
-            if (boleto.Cedente.ContaBancaria != null &&
-                (!codigoCedente.StartsWith(boleto.Cedente.ContaBancaria.Agencia) ||
-                 !(codigoCedente.EndsWith(conta) || codigoCedente.EndsWith(conta.Substring(0, conta.Length - 1)))))
-                //throw new BoletoNetException("Código do cedente deve estar no " + infoFormatoCodigoCedente);
-                boleto.Cedente.Codigo = string.Format("{0}{1}{2}", boleto.Cedente.ContaBancaria.Agencia, boleto.Cedente.ContaBancaria.OperacaConta, boleto.Cedente.Codigo);
+           // Removido em:18/03/2025 Flavio Ribeiro, estava alterando o codigo do cedente gerando problema na formatacao do codigo de barras e linha digitavel 
+           // if (boleto.Cedente.ContaBancaria != null &&
+           //     (!codigoCedente.StartsWith(boleto.Cedente.ContaBancaria.Agencia) ||
+           //      !(codigoCedente.EndsWith(conta) || codigoCedente.EndsWith(conta.Substring(0, conta.Length - 1)))))
+           //     //throw new BoletoNetException("Código do cedente deve estar no " + infoFormatoCodigoCedente);
+           //     boleto.Cedente.Codigo = string.Format("{0}{1}{2}", boleto.Cedente.ContaBancaria.Agencia, boleto.Cedente.ContaBancaria.OperacaConta, boleto.Cedente.Codigo);
 
             if (string.IsNullOrEmpty(boleto.Carteira))
                 throw new BoletoNetException("Tipo de carteira é obrigatório. " + ObterInformacoesCarteirasDisponiveis());
@@ -121,7 +122,8 @@ namespace BoletoNet
                     var iNossoNumero = int.Parse(boleto.NossoNumero);
                     boleto.NossoNumero = DateTime.Now.ToString("yy") + "2" + iNossoNumero.ToString().PadLeft(5, '0');
                     boleto.DigitoNossoNumero = DigNossoNumeroSicredi(boleto);
-                    boleto.NossoNumero += boleto.DigitoNossoNumero;
+                    // Estava Alterando o nosso numero gerando inconsistência, o nosso número deve ter no máximo 9 digitos
+                    // boleto.NossoNumero += boleto.DigitoNossoNumero;
                     break;
                 default:
                     throw new NotImplementedException("Nosso número inválido");
@@ -212,7 +214,9 @@ namespace BoletoNet
                 codigoCobranca +
                 boleto.Carteira +
                 Utils.FormatCode(boleto.NossoNumero, 9) +
-                Utils.FormatCode(boleto.Cedente.Codigo, 11) + "10";
+                Utils.FormatCode(boleto.Cedente.ContaBancaria.Agencia, 4) +
+                Utils.FormatCode(boleto.Cedente.ContaBancaria.OperacaConta, 2) +
+                Utils.FormatCode(boleto.Cedente.Codigo.Substring(0,5), 5) + "10";
 
             string dv_cmpLivre = digSicredi(cmp_livre).ToString();
 
@@ -228,7 +232,9 @@ namespace BoletoNet
             if (_dacBoleto == 0 || _dacBoleto > 9)
                 _dacBoleto = 1;
 
+            // Identificado no layout do SICREDI que não tem o DAC do boleto
             boleto.CodigoBarra.Codigo = GerarCodigoDeBarras(boleto, valorBoleto, cmp_livre, dv_cmpLivre, _dacBoleto);
+            //boleto.CodigoBarra.Codigo = GerarCodigoDeBarras(boleto, valorBoleto, cmp_livre, dv_cmpLivre);
         }
 
         private string GerarCodigoDeBarras(Boleto boleto, string valorBoleto, string cmp_livre, string dv_cmpLivre, int? dv_geral = null)
