@@ -123,7 +123,10 @@ namespace BoletoNet
                     boleto.NossoNumero = DateTime.Now.ToString("yy") + "2" + iNossoNumero.ToString().PadLeft(5, '0');
                     boleto.DigitoNossoNumero = DigNossoNumeroSicredi(boleto);
                     // Estava Alterando o nosso numero gerando inconsistência, o nosso número deve ter no máximo 9 digitos
-                    // boleto.NossoNumero += boleto.DigitoNossoNumero;
+                    if(boleto.Banco.Codigo == 748)
+                    {
+                        boleto.NossoNumero += boleto.DigitoNossoNumero;
+                    }
                     break;
                 default:
                     throw new NotImplementedException("Nosso número inválido");
