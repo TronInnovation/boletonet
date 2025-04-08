@@ -2,7 +2,6 @@
 using System.Text;
 using System.Web.UI;
 using BoletoNet.Util;
-using System.Text.RegularExpressions;
 
 [assembly: WebResource("BoletoNet.Imagens.756.jpg", "image/jpg")]
 namespace BoletoNet
@@ -1078,16 +1077,7 @@ namespace BoletoNet
                 detalhe.DataVencimento = Convert.ToDateTime(dataVencimento.ToString("##-##-####"));
                 decimal valorTitulo = Convert.ToInt64(registro.Substring(81, 15));
                 detalhe.ValorTitulo = valorTitulo / 100;
-                //detalhe.IdentificacaoTituloEmpresa = registro.Substring(105, 25);
-
-                string pattern = @"\d+";
-                Regex regex = new Regex(pattern);
-                MatchCollection matches = regex.Matches(registro.Substring(105, 25));
-                foreach (Match match in matches)
-                {
-                    detalhe.IdentificacaoTituloEmpresa = match.Value;
-                }
-
+                detalhe.IdentificacaoTituloEmpresa = registro.Substring(105, 25);
                 detalhe.TipoInscricao = Convert.ToInt32(registro.Substring(132, 1));
                 detalhe.NumeroInscricao = registro.Substring(133, 15);
                 detalhe.NomeSacado = registro.Substring(148, 40);
