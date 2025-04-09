@@ -121,11 +121,16 @@ namespace BoletoNet
                 case 6:
                     var iNossoNumero = int.Parse(boleto.NossoNumero);
                     boleto.NossoNumero = DateTime.Now.ToString("yy") + "2" + iNossoNumero.ToString().PadLeft(5, '0');
-                    boleto.DigitoNossoNumero = DigNossoNumeroSicredi(boleto);
+                    
                     // Estava Alterando o nosso numero gerando inconsistência, o nosso número deve ter no máximo 9 digitos
                     if(boleto.Banco.Codigo == 748)
                     {
+                        boleto.DigitoNossoNumero = DigNossoNumeroSicredi(boleto, true);
                         boleto.NossoNumero += boleto.DigitoNossoNumero;
+                    }
+                    else
+                    {
+                        boleto.DigitoNossoNumero = DigNossoNumeroSicredi(boleto);
                     }
                     break;
                 default:
