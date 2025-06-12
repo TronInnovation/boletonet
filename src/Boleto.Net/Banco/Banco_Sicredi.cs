@@ -545,11 +545,8 @@ namespace BoletoNet
                 detalhe.Append(Utils.FitStringLength(DateTime.Today.ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, true));//Posição 110 a 117
                 detalhe.Append(Utils.FitStringLength((boleto.CodJurosMora != null) && (boleto.CodJurosMora != "") && (boleto.CodJurosMora != "0") ? boleto.CodJurosMora.ToString() : "2", 1, 1, '1', 0, true, true, true));//Posição 118
                 detalhe.Append(Utils.FitStringLength(boleto.DataVencimento.AddDays(1).ToString("ddMMyyyy"), 8, 8, '0', 0, true, true, true));//Posição 119 a 126
-
-                if (boleto.CodJurosMora == "1" || boleto.CodJurosMora == null || boleto.CodJurosMora != "0")//Atribuindo a porcentagem de juros diários
-                    valorJuros = (decimal)(((boleto.ValorBoleto * boleto.PercJurosMora) / 100) );
-                else                                                      //Calculando valor do juros com base na porcentagem informada  
-                    valorJuros = (decimal)(((boleto.ValorBoleto * boleto.PercJurosMora) / 100) / 30);
+                
+                valorJuros = (decimal)(boleto.JurosMora * 30);
 
                 detalhe.Append(Utils.FitStringLength(valorJuros.ToString("0.00").Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//Posição 127 a 141
                 detalhe.Append(Utils.FitStringLength(boleto.DataDesconto >= DateTime.Now ? "1" : "3", 1, 1, '0', 0, true, true, true));//Posição 142  
@@ -559,7 +556,7 @@ namespace BoletoNet
                 detalhe.Append(Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true));//Posição 181 a 195 
                 detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 25, 25, '0', 0, true, true, true));//Posição 196 a 220
                 detalhe.Append(boleto.ProtestaTitulos == true ? "1" : "3");//Protesto
-                detalhe.Append(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "30");//dias protesto
+                detalhe.Append(boleto.ProtestaTitulos == true ? boleto.NumeroDiasProtesto.ToString() : "00");//dias protesto
                 detalhe.Append("1");//Posição 224
                 detalhe.Append("060");//Posição 225 a 227
                 detalhe.Append("09");//Posição 228 a 229
