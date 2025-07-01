@@ -335,10 +335,20 @@ namespace BoletoNet
                 valorBoleto = boleto.JurosMora.ToString("f").Replace(",", "").Replace(".", "");
                 valorBoleto = Utils.FormatCode(valorBoleto, 13);
                 detalhe += valorBoleto;
+
                 detalhe += "1";
                 detalhe += boleto.DataDesconto.ToString("ddMMyyyy");
                 valorBoleto = boleto.ValorDesconto.ToString("f").Replace(",", "").Replace(".", "");
                 valorBoleto = Utils.FormatCode(valorBoleto, 13);
+                detalhe += "0";
+                detalhe += "00000000";
+                valorBoleto = "0000000000000";
+
+                // Removendo o valor do desconto nao se aplica para esse banco - 01/07/2025
+                //                detalhe += "1";
+                //                detalhe += boleto.DataDesconto.ToString("ddMMyyyy");
+                //                valorBoleto = boleto.ValorDesconto.ToString("f").Replace(",", "").Replace(".", "");
+                //                valorBoleto = Utils.FormatCode(valorBoleto, 13);
                 detalhe += valorBoleto;
                 detalhe += Utils.FormatCode("", 26);
                 detalhe += Utils.FormatCode("", " ", 25);
