@@ -336,10 +336,6 @@ namespace BoletoNet
                 valorBoleto = Utils.FormatCode(valorBoleto, 13);
                 detalhe += valorBoleto;
 
-                detalhe += "1";
-                detalhe += boleto.DataDesconto.ToString("ddMMyyyy");
-                valorBoleto = boleto.ValorDesconto.ToString("f").Replace(",", "").Replace(".", "");
-                valorBoleto = Utils.FormatCode(valorBoleto, 13);
                 detalhe += "0";
                 detalhe += "00000000";
                 valorBoleto = "0000000000000";
