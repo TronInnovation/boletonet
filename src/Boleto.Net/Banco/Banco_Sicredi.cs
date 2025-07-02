@@ -555,9 +555,16 @@ namespace BoletoNet
                 valorJuros = (decimal)(boleto.JurosMora * 30);
 
                 detalhe.Append(Utils.FitStringLength(valorJuros.ToString("0.00").Replace(",", "").Replace(".", ""), 15, 15, '0', 0, true, true, true));//Posição 127 a 141
-                detalhe.Append(Utils.FitStringLength(boleto.DataDesconto >= DateTime.Now ? "1" : "3", 1, 1, '0', 0, true, true, true));//Posição 142  
-                detalhe.Append(Utils.FitStringLength(boleto.DataDesconto != null && boleto.DataDesconto >= Convert.ToDateTime("01/01/1990") ? boleto.DataDesconto.ToString("ddMMyyyy") : "0", 8, 8, '0', 0, true, true, true));//Posição 143 a 150   
-                detalhe.Append(Utils.FitStringLength(boleto.ValorDesconto.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//Posição 151 a 165 
+
+                detalhe.Append(Utils.FitStringLength("0", 1, 1, '0', 0, true, true, true));//Posição 142  
+                detalhe.Append(Utils.FitStringLength("00000000", 8, 8, '0', 0, true, true, true));//Posição 143 a 150   
+                detalhe.Append(Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true));//Posição 151 a 165 
+
+                // Removida a geracao do desconto para o banco Sicredi
+                // detalhe.Append(Utils.FitStringLength(boleto.DataDesconto >= DateTime.Now ? "1" : "3", 1, 1, '0', 0, true, true, true));//Posição 142  
+                // detalhe.Append(Utils.FitStringLength(boleto.DataDesconto != null && boleto.DataDesconto >= Convert.ToDateTime("01/01/1990") ? boleto.DataDesconto.ToString("ddMMyyyy") : "0", 8, 8, '0', 0, true, true, true));//Posição 143 a 150   
+                // detalhe.Append(Utils.FitStringLength(boleto.ValorDesconto.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//Posição 151 a 165 
+                
                 detalhe.Append(Utils.FitStringLength(boleto.IOF.ToString("0.00").Replace(",", ""), 15, 15, '0', 0, true, true, true));//Posição 166 a 180 
                 detalhe.Append(Utils.FitStringLength("0", 15, 15, '0', 0, true, true, true));//Posição 181 a 195 
                 detalhe.Append(Utils.FitStringLength(boleto.NossoNumero, 25, 25, '0', 0, true, true, true));//Posição 196 a 220
